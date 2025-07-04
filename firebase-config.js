@@ -4,13 +4,15 @@
 // IMPORTANTE: Reemplaza estos valores con los de tu proyecto Firebase
 
 const firebaseConfig = {
-    apiKey: "tu-api-key-aqui",
-    authDomain: "tu-proyecto.firebaseapp.com",
-    projectId: "tu-proyecto-id",
-    storageBucket: "tu-proyecto.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "tu-app-id"
-};
+    apiKey: "AIzaSyChwtFB7_RTOvobdTWPcTG3H7THTFbKaqk",
+    authDomain: "g-u-online.firebaseapp.com",
+    databaseURL: "https://g-u-online-default-rtdb.firebaseio.com",
+    projectId: "g-u-online",
+    storageBucket: "g-u-online.firebasestorage.app",
+    messagingSenderId: "81026595753",
+    appId: "1:81026595753:web:deb393adb13a8f8d7362b8",
+    measurementId: "G-EXLC3711B7"
+  };
 
 // Inicializar Firebase
 firebase.initializeApp(firebaseConfig);
