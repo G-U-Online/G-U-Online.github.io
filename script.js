@@ -24,29 +24,7 @@ let siteConfig = {
 };
 
 // Datos del carrusel
-let carouselData = [
-    {
-        id: 1,
-        src: "imagenes/mi_ilustracion_1.jpg",
-        title: "Comic Style Artwork",
-        description: "Una de mis últimas creaciones",
-        category: "comic-style"
-    },
-    {
-        id: 2,
-        src: "imagenes/mi_ilustracion_2.jpg",
-        title: "Semi-Realistic Portrait",
-        description: "Retrato digital detallado",
-        category: "semi-realism"
-    },
-    {
-        id: 3,
-        src: "imagenes/mi_ilustracion_3.jpg",
-        title: "Commission Work",
-        description: "Trabajo personalizado para cliente",
-        category: "commissions"
-    }
-];
+let carouselData = [];
 
 // Categorías dinámicas
 let categories = {
@@ -74,49 +52,10 @@ let categories = {
 
 // Simulamos una base de datos local con localStorage
 let galleryData = {
-    'comic-style': [
-        {
-            id: 1,
-            src: 'imagenes/mi_ilustracion_1.jpg',
-            title: 'Superhéroe Original',
-            description: 'Un diseño de personaje de superhéroe con estilo cómic moderno.',
-            category: 'comic-style'
-        },
-        {
-            id: 2,
-            src: 'imagenes/mi_ilustracion_2.jpg',
-            title: 'Escena de Batalla',
-            description: 'Ilustración dinámica de una épica batalla entre héroes.',
-            category: 'comic-style'
-        }
-    ],
-    'semi-realism': [
-        {
-            id: 3,
-            src: 'imagenes/mi_ilustracion_3.jpg',
-            title: 'Retrato Digital',
-            description: 'Retrato semi-realista con técnicas de pintura digital.',
-            category: 'semi-realism'
-        }
-    ],
-    'commissions': [
-        {
-            id: 4,
-            src: 'imagenes/mi_ilustracion_4.jpg',
-            title: 'Comisión Personalizada',
-            description: 'Trabajo personalizado para cliente específico.',
-            category: 'commissions'
-        }
-    ],
-    'personal-drawings': [
-        {
-            id: 5,
-            src: 'imagenes/mi_ilustracion_5.jpg',
-            title: 'Estudio Personal',
-            description: 'Exploración artística personal y experimental.',
-            category: 'personal-drawings'
-        }
-    ]
+    'comic-style': [],
+    'semi-realism': [],
+    'commissions': [],
+    'personal-drawings': []
 };
 
 // Redes sociales
@@ -255,9 +194,7 @@ function applySiteConfig() {
     const profileImage = document.querySelector('.profile-image');
     if (profileImage && siteConfig.profileImage) {
         profileImage.src = siteConfig.profileImage;
-        profileImage.onerror = function() {
-            this.src = 'imagenes/sin-foto.png';
-        };
+        setImageFallback(profileImage);
     }
 
     // Cargar redes sociales
@@ -464,9 +401,7 @@ function openImageModal(imageId) {
     const modalCategorySelect = document.getElementById('modalCategorySelect');
 
     modalImage.src = image.src;
-    modalImage.onerror = function() {
-        this.src = 'imagenes/sin-foto.png';
-    };
+    setImageFallback(modalImage);
     
     modalTitle.textContent = image.title;
     modalCategory.textContent = formatCategoryName(image.category);
@@ -1288,9 +1223,7 @@ function changeProfileImage() {
                 siteConfig.profileImage = filePath; // Usar ruta relativa
                 const profileImg = document.querySelector('.profile-image');
                 profileImg.src = filePath;
-                profileImg.onerror = function() {
-                    this.src = 'imagenes/sin-foto.png';
-                };
+                setImageFallback(profileImg);
                 saveAllData();
                 
                 // Descargar la imagen automáticamente
@@ -1389,20 +1322,22 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-// ==========================================================================
-// INICIALIZACIÓN DE DATOS DE EJEMPLO
-// ==========================================================================
-function initializeExampleData() {
-    // Solo inicializar si no hay datos guardados
-    const savedData = localStorage.getItem('portfolioGalleryData');
-    if (!savedData) {
-        saveAllData();
-        console.log('Datos de ejemplo inicializados');
-    }
-}
+// Eliminar la función initializeExampleData si existe
+delete window.initializeExampleData;
 
 // Llamar a la inicialización cuando se carga la página
 document.addEventListener('DOMContentLoaded', function() {
-    initializeExampleData();
-    checkSecretAccess(); // Verificar acceso secreto mediante URL
-}); 
+    // Ya no se cargan datos de ejemplo locales
+    // Solo se cargan datos desde Firebase
+    loadCarouselFromFirebase();
+    loadGalleryFromFirebase();
+    // ... otras inicializaciones ...
+});
+
+// Asegurar fallback universal a 'imagenes/sin-foto.png' para cualquier imagen que falle
+function setImageFallback(imgElement) {
+    imgElement.onerror = function() {
+        this.onerror = null;
+        this.src = 'imagenes/sin-foto.png';
+    };
+} 

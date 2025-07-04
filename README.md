@@ -1,6 +1,40 @@
 # 🎨 Portafolio de Ilustraciones Digitales
 
-Una página web profesional para mostrar ilustraciones digitales con funcionalidades de administración. Diseño responsivo y moderno con efectos visuales atractivos.
+## Descripción
+Página web de portafolio personal para mostrar ilustraciones digitales, con administración avanzada y almacenamiento en Firebase.
+
+## Primeros pasos
+
+1. **Clona el repositorio y abre la carpeta.**
+2. **Configura Firebase:**
+   - Crea un proyecto en [Firebase](https://console.firebase.google.com/).
+   - Habilita Firestore y Storage (recomendado en región `us-central1`).
+   - Copia tu objeto `firebaseConfig` en el archivo `firebase-config.js`.
+3. **Sube imágenes y contenido:**
+   - Accede al panel de administración usando el enlace secreto (`?admin=true`).
+   - Sube imágenes y edita el contenido desde el panel. Todo se almacena en Firebase.
+   - **No hay imágenes de ejemplo locales:** El sitio está vacío hasta que subas tu propio contenido.
+4. **Fallback de imágenes:**
+   - Si una imagen no existe o falla la carga, se mostrará automáticamente `imagenes/sin-foto.png`.
+   - Puedes personalizar esta imagen de respaldo en la carpeta `imagenes/`.
+5. **Publica en GitHub Pages:**
+   - Sube todos los archivos y carpetas (excepto datos sensibles) a tu repositorio.
+   - Activa GitHub Pages desde la configuración del repositorio.
+
+## Acceso de administrador
+- Accede al panel usando la URL secreta: `tusitio.com/?admin=true`
+- Contraseña por defecto: `admin123` (puedes cambiarla en el código)
+
+## Notas importantes
+- **No subas imágenes manualmente a la carpeta `imagenes/`** (excepto `sin-foto.png`). Todo el contenido debe subirse desde el panel admin y se almacena en Firebase.
+- Si ves errores 404 por imágenes, elimina los datos de ejemplo y sube nuevas imágenes desde el admin.
+
+## Personalización
+- Edita textos, secciones, imágenes y enlaces sociales desde el panel admin.
+- Cambia la foto de perfil y la información personal desde la sección "Sobre mí".
+
+## Créditos
+- Bootstrap, Font Awesome, Google Fonts, Firebase.
 
 ## ✨ Características Principales
 
