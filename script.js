@@ -368,15 +368,15 @@ function createGalleryItem(image) {
     item.innerHTML = `
         <img src="${image.src}" alt="${image.title}" onerror="this.src='imagenes/sin-foto.png'">
         <div class="gallery-overlay">
-            <button class="view-btn" onclick="openImageModal(${image.id})">
-                <i class="fas fa-eye"></i> Ver Imagen
+            <button class="view-btn" onclick="openImageModal('${image.id}')">
+                Ver
             </button>
         </div>
         <div class="admin-controls admin-only ${isAdmin ? '' : 'hidden'}">
-            <button class="admin-btn" onclick="editImage(${image.id})" title="Editar">
+            <button class="admin-btn" onclick="editImage('${image.id}')" title="Editar">
                 <i class="fas fa-edit"></i>
             </button>
-            <button class="admin-btn" onclick="deleteImageFromGallery(${image.id})" title="Eliminar">
+            <button class="admin-btn" onclick="deleteImageFromGallery('${image.id}')" title="Eliminar">
                 <i class="fas fa-trash"></i>
             </button>
         </div>
