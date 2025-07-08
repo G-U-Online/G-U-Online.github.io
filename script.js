@@ -477,16 +477,25 @@ function openImageModal(imageId) {
     const modalDescription = document.getElementById('modalDescription');
     const modalDate = document.getElementById('modalDate');
 
-    modalImage.src = image.src;
-    setImageFallback(modalImage);
-    modalTitle.textContent = image.title || '';
-    modalDescription.innerHTML = `<p>${image.description || ''}</p>`;
-    // Fecha: usa image.date si existe, si no, muestra 'Sin fecha'
-    let fecha = image.date ? new Date(image.date) : null;
-    modalDate.textContent = fecha ? fecha.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Sin fecha';
+    if (modalImage) {
+        modalImage.src = image.src;
+        setImageFallback(modalImage);
+    }
+    if (modalTitle) {
+        modalTitle.textContent = image.title || '';
+    }
+    if (modalDescription) {
+        modalDescription.innerHTML = `<p>${image.description || ''}</p>`;
+    }
+    if (modalDate) {
+        let fecha = image.date ? new Date(image.date) : null;
+        modalDate.textContent = fecha ? fecha.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Sin fecha';
+    }
 
-    modal.classList.add('show');
-    document.body.style.overflow = 'hidden';
+    if (modal) {
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
 }
 
 function closeImageModal() {
