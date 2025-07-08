@@ -82,6 +82,75 @@ let socialLinks = {
     }
 };
 
+// Carrusel automático
+let carouselCurrentIndex = 0;
+let carouselInterval = null;
+
+let isAnimating = false;
+
+function showCarouselImage(index, direction = 0) {
+    const carouselItems = document.querySelectorAll('.carousel-item');
+    if (carouselItems.length === 0) return;
+    if (isAnimating) return;
+    if (index === carouselCurrentIndex) return;
+    isAnimating = true;
+    const current = carouselItems[carouselCurrentIndex];
+    const next = carouselItems[index];
+    // Limpia clases de animación
+    carouselItems.forEach(item => {
+        item.classList.remove('slide-in-left', 'slide-in-right', 'slide-out-left', 'slide-out-right', 'active');
+    });
+    // Prepara ambas imágenes visibles
+    current.classList.add('active');
+    next.classList.add('active');
+    // Aplica animaciones
+    if (direction === 1) {
+        // Siguiente: actual sale a la izquierda, nueva entra desde la derecha
+        current.classList.add('slide-out-left');
+        next.classList.add('slide-in-right');
+    } else if (direction === -1) {
+        // Anterior: actual sale a la derecha, nueva entra desde la izquierda
+        current.classList.add('slide-out-right');
+        next.classList.add('slide-in-left');
+    } else {
+        // Sin animación, solo muestra
+        next.classList.add('active');
+        isAnimating = false;
+        carouselCurrentIndex = index;
+        return;
+    }
+    // Al terminar la animación, oculta la saliente
+    setTimeout(() => {
+        current.classList.remove('active', 'slide-out-left', 'slide-out-right');
+        next.classList.remove('slide-in-left', 'slide-in-right');
+        next.classList.add('active');
+        isAnimating = false;
+        carouselCurrentIndex = index;
+    }, 510);
+}
+
+function showNextCarouselImage(manual = false) {
+    const carouselItems = document.querySelectorAll('.carousel-item');
+    if (carouselItems.length === 0) return;
+    let nextIndex = (carouselCurrentIndex + 1) % carouselItems.length;
+    showCarouselImage(nextIndex, 1);
+    if (manual && carouselInterval) {
+        clearInterval(carouselInterval);
+        startCarouselAutoSlide();
+    }
+}
+
+function showPrevCarouselImage() {
+    const carouselItems = document.querySelectorAll('.carousel-item');
+    if (carouselItems.length === 0) return;
+    let prevIndex = (carouselCurrentIndex - 1 + carouselItems.length) % carouselItems.length;
+    showCarouselImage(prevIndex, -1);
+    if (carouselInterval) {
+        clearInterval(carouselInterval);
+        startCarouselAutoSlide();
+    }
+}
+
 // ==========================================================================
 // INICIALIZACIÓN
 // ==========================================================================
@@ -263,6 +332,13 @@ function setupCarousel() {
     }
 }
 
+function startCarouselAutoSlide() {
+    if (carouselInterval) clearInterval(carouselInterval);
+    carouselInterval = setInterval(() => {
+        showNextCarouselImage();
+    }, 4000); // 4 segundos
+}
+
 function loadCarousel() {
     const carouselTrack = document.getElementById('carouselTrack');
     if (!carouselTrack) {
@@ -279,7 +355,7 @@ function loadCarousel() {
     if (carouselData.length === 0) {
         console.log('No hay imágenes en el carrusel, mostrando placeholder');
         carouselTrack.innerHTML = `
-            <div class="carousel-item">
+            <div class="carousel-item active">
                 <img src="imagenes/sin-foto.png" alt="Sin imágenes">
                 <div class="carousel-overlay">
                     <h5>No hay imágenes en el carrusel</h5>
@@ -294,7 +370,7 @@ function loadCarousel() {
     carouselData.forEach((item, index) => {
         console.log(`Creando elemento ${index + 1}:`, item);
         const carouselItem = document.createElement('div');
-        carouselItem.className = 'carousel-item';
+        carouselItem.className = 'carousel-item' + (index === 0 ? ' active' : '');
         carouselItem.innerHTML = `
             <img src="${item.src}" alt="${item.title}" onerror="this.src='imagenes/sin-foto.png'">
             <div class="carousel-overlay">
@@ -310,25 +386,10 @@ function loadCarousel() {
         img.onerror = () => console.error(`Error cargando imagen ${index + 1}:`, item.src);
     });
 
-    // Duplicar elementos para efecto infinito
-    carouselData.forEach((item, index) => {
-        console.log(`Duplicando elemento ${index + 1} para efecto infinito`);
-        const carouselItem = document.createElement('div');
-        carouselItem.className = 'carousel-item';
-        carouselItem.innerHTML = `
-            <img src="${item.src}" alt="${item.title}" onerror="this.src='imagenes/sin-foto.png'">
-            <div class="carousel-overlay">
-                <h5>${item.title}</h5>
-                <p>${item.description}</p>
-            </div>
-        `;
-        carouselTrack.appendChild(carouselItem);
-        
-        // Verificar si la imagen duplicada se carga correctamente
-        const img = carouselItem.querySelector('img');
-        img.onload = () => console.log(`Imagen duplicada ${index + 1} cargada correctamente:`, item.src);
-        img.onerror = () => console.error(`Error cargando imagen duplicada ${index + 1}:`, item.src);
-    });
+    // Mostrar solo la primera imagen
+    carouselCurrentIndex = 0;
+    showCarouselImage(0);
+    startCarouselAutoSlide();
 }
 
 // ==========================================================================
@@ -1368,6 +1429,29 @@ document.addEventListener('DOMContentLoaded', function() {
     loadCarouselFromFirebase();
     loadGalleryFromFirebase();
     // ... otras inicializaciones ...
+    const prevBtn = document.getElementById('carouselPrevBtn');
+    const nextBtn = document.getElementById('carouselNextBtn');
+    if (prevBtn) prevBtn.onclick = () => showPrevCarouselImage(true);
+    if (nextBtn) nextBtn.onclick = () => showNextCarouselImage(true);
+
+    // Swipe events
+    let startX = null;
+    const track = document.getElementById('carouselTrack');
+    if (track) {
+        track.addEventListener('touchstart', e => {
+            startX = e.touches[0].clientX;
+        });
+        track.addEventListener('touchend', e => {
+            if (startX === null) return;
+            let endX = e.changedTouches[0].clientX;
+            let diff = endX - startX;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) showPrevCarouselImage(true);
+                else showNextCarouselImage(true);
+            }
+            startX = null;
+        });
+    }
 });
 
 // Asegurar fallback universal a 'imagenes/sin-foto.png' para cualquier imagen que falle
