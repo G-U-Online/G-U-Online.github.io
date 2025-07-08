@@ -265,12 +265,19 @@ function setupCarousel() {
 
 function loadCarousel() {
     const carouselTrack = document.getElementById('carouselTrack');
-    if (!carouselTrack) return;
+    if (!carouselTrack) {
+        console.error('No se encontró el elemento carouselTrack');
+        return;
+    }
 
     carouselTrack.innerHTML = '';
+    
+    console.log('Cargando carrusel con', carouselData.length, 'imágenes');
+    console.log('Datos del carrusel:', carouselData);
 
     // Verificar si hay imágenes en el carrusel
     if (carouselData.length === 0) {
+        console.log('No hay imágenes en el carrusel, mostrando placeholder');
         carouselTrack.innerHTML = `
             <div class="carousel-item">
                 <img src="imagenes/sin-foto.png" alt="Sin imágenes">
@@ -284,7 +291,8 @@ function loadCarousel() {
     }
 
     // Crear elementos del carrusel
-    carouselData.forEach(item => {
+    carouselData.forEach((item, index) => {
+        console.log(`Creando elemento ${index + 1}:`, item);
         const carouselItem = document.createElement('div');
         carouselItem.className = 'carousel-item';
         carouselItem.innerHTML = `
@@ -295,10 +303,16 @@ function loadCarousel() {
             </div>
         `;
         carouselTrack.appendChild(carouselItem);
+        
+        // Verificar si la imagen se carga correctamente
+        const img = carouselItem.querySelector('img');
+        img.onload = () => console.log(`Imagen ${index + 1} cargada correctamente:`, item.src);
+        img.onerror = () => console.error(`Error cargando imagen ${index + 1}:`, item.src);
     });
 
     // Duplicar elementos para efecto infinito
-    carouselData.forEach(item => {
+    carouselData.forEach((item, index) => {
+        console.log(`Duplicando elemento ${index + 1} para efecto infinito`);
         const carouselItem = document.createElement('div');
         carouselItem.className = 'carousel-item';
         carouselItem.innerHTML = `
@@ -309,6 +323,11 @@ function loadCarousel() {
             </div>
         `;
         carouselTrack.appendChild(carouselItem);
+        
+        // Verificar si la imagen duplicada se carga correctamente
+        const img = carouselItem.querySelector('img');
+        img.onload = () => console.log(`Imagen duplicada ${index + 1} cargada correctamente:`, item.src);
+        img.onerror = () => console.error(`Error cargando imagen duplicada ${index + 1}:`, item.src);
     });
 }
 
@@ -596,19 +615,36 @@ function checkCarouselStatus() {
         return;
     }
     
+    // Verificar elementos del DOM
+    const carouselTrack = document.getElementById('carouselTrack');
+    const carouselItems = carouselTrack ? carouselTrack.querySelectorAll('.carousel-item') : [];
+    console.log('Elementos del carrusel en el DOM:', carouselItems.length);
+    
     carouselData.forEach((item, index) => {
         console.log(`Imagen ${index + 1}:`, {
             title: item.title,
             src: item.src,
             isBase64: item.src && item.src.startsWith('data:image/'),
             isRelative: item.src && item.src.startsWith('imagenes/'),
-            isFirebase: item.src && item.src.includes('firebase')
+            isFirebase: item.src && item.src.includes('firebase'),
+            isUrl: item.src && (item.src.startsWith('http://') || item.src.startsWith('https://'))
         });
         
         if (item.src && item.src.startsWith('data:image/')) {
             showNotification(`Imagen ${index + 1} está en Base64. Usa "Resetear Carrusel" para solucionarlo.`, 'warning');
         }
+        
+        if (!item.src) {
+            showNotification(`Imagen ${index + 1} no tiene URL válida.`, 'error');
+        }
     });
+    
+    // Verificar si Firebase está configurado
+    if (isFirebaseConfigured()) {
+        console.log('Firebase está configurado correctamente');
+    } else {
+        console.log('Firebase NO está configurado');
+    }
 }
 
 // Función para descargar imágenes automáticamente
