@@ -12,7 +12,7 @@ let currentCategory = 'comic-style';
 
 // Configuración del sitio
 let siteConfig = {
-    artistName: "Tu Nombre Artístico",
+    artistName: "G_U_Sketch",
     subtitle: "Ilustrador Digital | Diseñador Creativo",
     email: "tu_email@ejemplo.com",
     profileImage: "imagenes/mi_foto_perfil.jpg",
