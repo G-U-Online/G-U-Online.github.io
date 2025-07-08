@@ -14,13 +14,13 @@ let currentCategory = 'comic-style';
 let siteConfig = {
     artistName: "G_U_Sketch",
     subtitle: "Ilustrador Digital | Diseñador Creativo",
-    email: "tu_email@ejemplo.com",
+    email: "gu.sketxh@gmail.com",
     profileImage: "imagenes/mi_foto_perfil.jpg",
     biography: "¡Hola! Soy un ilustrador digital apasionado por crear mundos visuales únicos...",
     featuredTitle: "Ilustraciones Destacadas",
     aboutTitle: "Sobre Mí",
-    contactTitle: "Contáctame",
-    contactDescription: "¿Interesado en trabajar juntos? ¡Me encantaría saber de ti!"
+    contactTitle: "Visita mis redes sociales",
+    contactDescription: "¡Me apoyarías mucho si me sigues en mis redes sociales!"
 };
 
 // Datos del carrusel
@@ -61,22 +61,27 @@ let galleryData = {
 // Redes sociales
 let socialLinks = {
     instagram: {
-        url: "https://instagram.com/tu_usuario",
+        url: "https://www.instagram.com/g_u_sketch/",
         icon: "fab fa-instagram",
         enabled: true
     },
-    twitter: {
-        url: "https://twitter.com/tu_usuario",
-        icon: "fab fa-twitter",
+    x: {
+        url: "https://x.com/G_U_Sketch",
+        icon: "custom-x-icon",
         enabled: true
     },
-    artstation: {
-        url: "https://artstation.com/tu_usuario",
-        icon: "fab fa-artstation",
+    tumblr: {
+        url: "https://www.tumblr.com/blog/g-u-sketch",
+        icon: "fab fa-tumblr",
+        enabled: true
+    },
+    tiktok: {
+        url: "https://www.tiktok.com/@g_u_sketch",
+        icon: "fab fa-tiktok",
         enabled: true
     },
     deviantart: {
-        url: "https://deviantart.com/tu_usuario",
+        url: "https://www.deviantart.com/g-u-sketch",
         icon: "fab fa-deviantart",
         enabled: true
     }
