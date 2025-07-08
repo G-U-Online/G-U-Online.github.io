@@ -474,52 +474,24 @@ function openImageModal(imageId) {
     const modal = document.getElementById('imageModal');
     const modalImage = document.getElementById('modalImage');
     const modalTitle = document.getElementById('modalTitle');
-    const modalCategory = document.getElementById('modalCategory');
     const modalDescription = document.getElementById('modalDescription');
-    const modalTitleInput = document.getElementById('modalTitleInput');
-    const modalCaption = document.getElementById('modalCaption');
-    const modalCategorySelect = document.getElementById('modalCategorySelect');
+    const modalDate = document.getElementById('modalDate');
 
     modalImage.src = image.src;
     setImageFallback(modalImage);
-    
-    modalTitle.textContent = image.title;
-    modalCategory.textContent = formatCategoryName(image.category);
-    modalDescription.innerHTML = `<p>${image.description}</p>`;
-    
-    // Campos de edición
-    modalTitleInput.value = image.title;
-    modalCaption.value = image.description;
-    
-    // Cargar opciones de categoría
-    modalCategorySelect.innerHTML = '';
-    Object.entries(categories).forEach(([key, category]) => {
-        const option = document.createElement('option');
-        option.value = key;
-        option.textContent = category.name;
-        if (key === image.category) option.selected = true;
-        modalCategorySelect.appendChild(option);
-    });
+    modalTitle.textContent = image.title || '';
+    modalDescription.innerHTML = `<p>${image.description || ''}</p>`;
+    // Fecha: usa image.date si existe, si no, muestra 'Sin fecha'
+    let fecha = image.date ? new Date(image.date) : null;
+    modalDate.textContent = fecha ? fecha.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Sin fecha';
 
-    modal.style.display = 'block';
+    modal.classList.add('show');
     document.body.style.overflow = 'hidden';
-
-    // Mostrar controles de admin si está logueado
-    document.querySelectorAll('.admin-only').forEach(el => {
-        if (isAdmin) {
-            el.classList.remove('hidden');
-        } else {
-            el.classList.add('hidden');
-        }
-    });
-
-    // Guardar ID de imagen actual para funciones de admin
-    modal.setAttribute('data-current-image-id', imageId);
 }
 
 function closeImageModal() {
     const modal = document.getElementById('imageModal');
-    modal.style.display = 'none';
+    modal.classList.remove('show');
     document.body.style.overflow = 'auto';
 }
 

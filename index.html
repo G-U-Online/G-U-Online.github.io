@@ -172,45 +172,20 @@
     </section>
 
     <!-- ==========================================================================
-         MODAL DE IMAGEN
+         MODAL DE IMAGEN (ESTILO INSTAGRAM)
          ========================================================================== -->
     <div class="image-modal" id="imageModal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeImageModal()">&times;</span>
-            <div class="modal-image-container">
+        <div class="modal-ig-content">
+            <div class="modal-ig-image-container">
                 <img class="modal-image" id="modalImage" src="" alt="">
             </div>
-            <div class="modal-sidebar">
-                <h4 id="modalTitle">Título de la Ilustración</h4>
-                <p class="text-muted mb-3" id="modalCategory">Categoría</p>
-                <div id="modalDescription">
+            <div class="modal-ig-sidebar">
+                <span class="close-modal" onclick="closeImageModal()">&times;</span>
+                <h4 id="modalTitle" class="modal-ig-title">Título de la Ilustración</h4>
+                <div id="modalDescription" class="modal-ig-caption">
                     <p>Descripción de la ilustración...</p>
                 </div>
-                <hr>
-                <div class="admin-only hidden">
-                    <h6>Panel de Administración</h6>
-                    <div class="mb-3">
-                        <label for="modalTitleInput" class="form-label">Título:</label>
-                        <input type="text" class="form-control" id="modalTitleInput">
-                    </div>
-                    <div class="mb-3">
-                        <label for="modalCaption" class="form-label">Descripción:</label>
-                        <textarea class="form-control" id="modalCaption" rows="3" 
-                                  placeholder="Escribe una descripción..."></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="modalCategorySelect" class="form-label">Categoría:</label>
-                        <select class="form-control" id="modalCategorySelect">
-                            <!-- Opciones se cargarán dinámicamente -->
-                        </select>
-                    </div>
-                    <button class="btn btn-primary btn-sm" onclick="saveImageChanges()">
-                        <i class="fas fa-save"></i> Guardar Cambios
-                    </button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteImage()">
-                        <i class="fas fa-trash"></i> Eliminar
-                    </button>
-                </div>
+                <div class="modal-ig-date" id="modalDate">Fecha</div>
             </div>
         </div>
     </div>
