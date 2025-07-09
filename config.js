@@ -321,6 +321,133 @@ function applyConfig() {
 }
 
 // ==========================================================================
+// CONFIGURACIÓN DE COMPRESIÓN BROTLI
+// ==========================================================================
+
+// Configuración de compresión de imágenes
+const COMPRESSION_CONFIG = {
+    // Calidad de compresión JPEG (0.1 - 1.0)
+    quality: 0.85,
+    
+    // Tamaños máximos de imagen
+    maxDimensions: {
+        width: 1920,
+        height: 1080
+    },
+    
+    // Tamaño máximo de archivo antes de comprimir (en bytes)
+    maxSizeBeforeCompression: 5 * 1024 * 1024, // 5MB
+    
+    // Formatos de imagen que se pueden comprimir
+    compressibleFormats: [
+        'image/jpeg',
+        'image/jpg', 
+        'image/png',
+        'image/webp'
+    ],
+    
+    // Configuración de Brotli
+    brotli: {
+        // Nivel de compresión Brotli (0-11)
+        level: 6,
+        
+        // Tamaño de ventana Brotli
+        windowSize: 22,
+        
+        // Usar modo genérico o texto
+        mode: 'generic'
+    },
+    
+    // Configuración de metadatos
+    metadata: {
+        // Incluir información de compresión en metadatos
+        includeCompressionInfo: true,
+        
+        // Incluir tamaño original en metadatos
+        includeOriginalSize: true,
+        
+        // Incluir ratio de compresión en metadatos
+        includeCompressionRatio: true
+    },
+    
+    // Configuración de notificaciones
+    notifications: {
+        // Mostrar notificación de compresión exitosa
+        showCompressionSuccess: true,
+        
+        // Mostrar información detallada de compresión
+        showDetailedInfo: true,
+        
+        // Duración de notificaciones (en ms)
+        duration: 3000
+    },
+    
+    // Configuración de fallback
+    fallback: {
+        // Usar imagen original si la compresión falla
+        useOriginalOnError: true,
+        
+        // Mostrar advertencia si no se puede comprimir
+        showWarningOnFallback: true,
+        
+        // Intentar comprimir incluso si el navegador no soporta Brotli
+        attemptCompressionAnyway: false
+    }
+};
+
+// Función para obtener configuración de compresión
+function getCompressionConfig() {
+    return COMPRESSION_CONFIG;
+}
+
+// Función para actualizar configuración de compresión
+function updateCompressionConfig(newConfig) {
+    Object.assign(COMPRESSION_CONFIG, newConfig);
+}
+
+// Función para verificar si un archivo debe comprimirse
+function shouldCompressFile(file) {
+    // Verificar si el archivo es una imagen
+    if (!COMPRESSION_CONFIG.compressibleFormats.includes(file.type)) {
+        return false;
+    }
+    
+    // Verificar si el archivo es muy grande
+    if (file.size > COMPRESSION_CONFIG.maxSizeBeforeCompression) {
+        return true;
+    }
+    
+    // Comprimir siempre para optimizar
+    return true;
+}
+
+// Función para obtener calidad de compresión basada en el tamaño del archivo
+function getCompressionQuality(fileSize) {
+    const sizeInMB = fileSize / (1024 * 1024);
+    
+    if (sizeInMB > 10) {
+        return 0.7; // Archivos muy grandes: más compresión
+    } else if (sizeInMB > 5) {
+        return 0.8; // Archivos grandes: compresión media
+    } else if (sizeInMB > 2) {
+        return 0.85; // Archivos medianos: compresión ligera
+    } else {
+        return 0.9; // Archivos pequeños: alta calidad
+    }
+}
+
+// Exportar configuración para uso en otros archivos
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        COMPRESSION_CONFIG,
+        getCompressionConfig,
+        updateCompressionConfig,
+        shouldCompressFile,
+        getCompressionQuality
+    };
+}
+
+// ==========================================================================
 // EXPORTAR CONFIGURACIÓN
 // ==========================================================================
 // Si estás usando módulos ES6, descomenta la siguiente línea:

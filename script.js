@@ -814,15 +814,24 @@ function addCarouselImage_upload() {
         showNotification('El archivo es demasiado grande. Máximo 50MB.', 'error');
         return;
     }
-    showNotification('Subiendo imagen...', 'info');
+    showNotification('Comprimiendo y subiendo imagen...', 'info');
     uploadImageToFirebase(file).then(uploadResult => {
+        // Mostrar información de compresión
+        if (uploadResult.compressionInfo) {
+            const info = uploadResult.compressionInfo;
+            showNotification(`Imagen comprimida exitosamente! Reducción: ${info.compressionRatio}% (${info.sizeReductionKB}KB ahorrados)`, 'success');
+        }
+        
         const carouselDataObj = {
             title: title,
             description: description || 'Sin descripción',
             category: 'featured',
             imageUrl: uploadResult.url,
             fileName: uploadResult.fileName,
-            timestamp: uploadResult.timestamp
+            timestamp: uploadResult.timestamp,
+            originalSize: uploadResult.originalSize,
+            compressedSize: uploadResult.compressedSize,
+            compressionInfo: uploadResult.compressionInfo
         };
         return saveToFirestore('carousel', carouselDataObj);
     }).then(async () => {
@@ -1031,16 +1040,26 @@ async function addGalleryImage() {
         showNotification('El archivo es demasiado grande. Máximo 50MB.', 'error');
         return;
     }
-    showNotification('Subiendo imagen...', 'info');
+    showNotification('Comprimiendo y subiendo imagen...', 'info');
     try {
         const uploadResult = await uploadImageToFirebase(file);
+        
+        // Mostrar información de compresión
+        if (uploadResult.compressionInfo) {
+            const info = uploadResult.compressionInfo;
+            showNotification(`Imagen comprimida exitosamente! Reducción: ${info.compressionRatio}% (${info.sizeReductionKB}KB ahorrados)`, 'success');
+        }
+        
         const galleryDataObj = {
             title: title,
             description: description || '',
             category: categoryKey,
             imageUrl: uploadResult.url,
             fileName: uploadResult.fileName,
-            timestamp: dateValue ? new Date(dateValue).getTime() : uploadResult.timestamp
+            timestamp: dateValue ? new Date(dateValue).getTime() : uploadResult.timestamp,
+            originalSize: uploadResult.originalSize,
+            compressedSize: uploadResult.compressedSize,
+            compressionInfo: uploadResult.compressionInfo
         };
         await saveToFirestore('gallery', galleryDataObj);
         await loadGalleryFromFirebase();
@@ -1702,8 +1721,15 @@ function changeProfileImage() {
         }
         
         try {
-            showNotification('Subiendo imagen...', 'info');
+            showNotification('Comprimiendo y subiendo imagen...', 'info');
             const uploadResult = await uploadImageToFirebase(file);
+            
+            // Mostrar información de compresión
+            if (uploadResult.compressionInfo) {
+                const info = uploadResult.compressionInfo;
+                showNotification(`Imagen comprimida exitosamente! Reducción: ${info.compressionRatio}% (${info.sizeReductionKB}KB ahorrados)`, 'success');
+            }
+            
             siteConfig.profileImage = uploadResult.url;
             saveAllData();
             applySiteConfig();
