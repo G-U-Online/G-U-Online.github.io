@@ -1102,45 +1102,54 @@ function closeAdminPanel() {
 }
 
 function adminLogin() {
+    const email = document.getElementById('adminEmail').value;
     const password = document.getElementById('adminPassword').value;
-    // Contraseña simple para demo - en producción usar autenticación real
-    if (password === 'admin123') {
-        isAdmin = true;
-        document.getElementById('adminLogin').classList.add('hidden');
-        document.getElementById('adminInterface').classList.remove('hidden');
-        
-        // Mostrar controles de admin en la galería
-        document.querySelectorAll('.admin-only').forEach(el => {
-            el.classList.remove('hidden');
+    firebase.auth().signInWithEmailAndPassword(email, password)
+        .then(userCredential => {
+            isAdmin = true;
+            document.getElementById('adminLogin').classList.add('hidden');
+            document.getElementById('adminInterface').classList.remove('hidden');
+            document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+            loadGallery(currentCategory);
+            showNotification('¡Acceso de administrador concedido!', 'success');
+        })
+        .catch(error => {
+            showNotification('Correo o contraseña incorrectos', 'error');
+            document.getElementById('adminPassword').value = '';
         });
-        
-        // Recargar la galería actual para mostrar controles de admin
-        loadGallery(currentCategory);
-        
-        showNotification('¡Acceso de administrador concedido!', 'success');
-    } else {
-        showNotification('Contraseña incorrecta', 'error');
-        document.getElementById('adminPassword').value = '';
-    }
 }
 
 function adminLogout() {
-    isAdmin = false;
-    document.getElementById('adminLogin').classList.remove('hidden');
-    document.getElementById('adminInterface').classList.add('hidden');
-    document.getElementById('adminPassword').value = '';
-    
-    // Ocultar controles de admin
-    document.querySelectorAll('.admin-only').forEach(el => {
-        el.classList.add('hidden');
+    firebase.auth().signOut().then(() => {
+        isAdmin = false;
+        document.getElementById('adminLogin').classList.remove('hidden');
+        document.getElementById('adminInterface').classList.add('hidden');
+        document.getElementById('adminEmail').value = '';
+        document.getElementById('adminPassword').value = '';
+        document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
+        loadGallery(currentCategory);
+        closeAdminPanel();
+        showNotification('Sesión de administrador cerrada', 'info');
+        setTimeout(() => { window.location.href = '/'; }, 500);
     });
-    
-    // Recargar la galería para ocultar controles de admin
-    loadGallery(currentCategory);
-    
-    closeAdminPanel();
-    showNotification('Sesión de administrador cerrada', 'info');
 }
+
+// Mantener estado admin si el usuario ya está logueado
+firebase.auth().onAuthStateChanged(function(user) {
+    if (user) {
+        isAdmin = true;
+        document.getElementById('adminLogin').classList.add('hidden');
+        document.getElementById('adminInterface').classList.remove('hidden');
+        document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+        loadGallery(currentCategory);
+    } else {
+        isAdmin = false;
+        document.getElementById('adminLogin').classList.remove('hidden');
+        document.getElementById('adminInterface').classList.add('hidden');
+        document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
+        loadGallery(currentCategory);
+    }
+});
 
 // ==========================================================================
 // EDITOR DE CARRUSEL

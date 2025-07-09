@@ -217,9 +217,12 @@
             <h3>Panel de Administración</h3>
             <div id="adminLogin">
                 <div class="mb-3">
+                    <label for="adminEmail" class="form-label">Correo:</label>
+                    <input type="email" class="form-control" id="adminEmail" placeholder="Correo de administrador">
+                </div>
+                <div class="mb-3">
                     <label for="adminPassword" class="form-label">Contraseña:</label>
-                    <input type="password" class="form-control" id="adminPassword" 
-                           placeholder="Ingresa la contraseña de administrador">
+                    <input type="password" class="form-control" id="adminPassword" placeholder="Contraseña">
                 </div>
                 <button class="btn btn-primary" onclick="adminLogin()">Acceder</button>
                 <button class="btn btn-secondary" onclick="closeAdminPanel()">Cancelar</button>
@@ -380,6 +383,11 @@
             </div>
         </div>
     </div>
+
+    <!-- Botón flotante para abrir el panel de administración -->
+    <button id="openAdminPanelBtn" class="admin-only hidden admin-fab" onclick="toggleAdminPanel()" title="Abrir panel de administración">
+        <i class="fas fa-cog"></i>
+    </button>
 
     <!-- Footer -->
     <footer class="text-center py-4 footer">
