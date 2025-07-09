@@ -13,6 +13,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Estilos personalizados -->
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- Script para ocultar adminPanel inmediatamente -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const adminPanel = document.getElementById('adminPanel');
+            if (adminPanel) {
+                adminPanel.style.display = 'none';
+                adminPanel.style.visibility = 'hidden';
+                adminPanel.classList.remove('show');
+            }
+        });
+    </script>
 </head>
 
 <body>
@@ -203,7 +215,7 @@
     <!-- ==========================================================================
          PANEL DE ADMINISTRACIÓN PRINCIPAL
          ========================================================================== -->
-    <div class="admin-panel" id="adminPanel">
+    <div class="admin-panel" id="adminPanel" style="display:none !important; visibility:hidden !important; opacity:0 !important;">
         <div class="admin-content">
             <h3>Panel de Administración</h3>
             <div id="adminLogin">

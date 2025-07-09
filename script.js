@@ -189,6 +189,12 @@ function showPrevCarouselImage() {
 // INICIALIZACIÓN
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', async function() {
+    // FORZAR que el panel admin esté oculto al inicio
+    const adminPanel = document.getElementById('adminPanel');
+    if (adminPanel) {
+        adminPanel.classList.remove('show');
+    }
+    
     await loadAllData();
     applySiteConfig();
     setupCategoryNavigation();
@@ -551,7 +557,12 @@ function formatCategoryName(category) {
 // ADMINISTRACIÓN
 // ==========================================================================
 function toggleAdminPanel() {
-    document.getElementById('adminPanel').style.display = 'block';
+    const panel = document.getElementById('adminPanel');
+    // Remover estilos inline que puedan estar ocultando el panel
+    panel.style.removeProperty('display');
+    panel.style.removeProperty('visibility');
+    panel.style.removeProperty('opacity');
+    panel.classList.add('show');
     document.getElementById('adminPassword').focus();
 }
 
@@ -561,13 +572,25 @@ function checkSecretAccess() {
     const secretKey = urlParams.get('admin');
     
     if (secretKey === 'true') {
-        // Mostrar el panel de admin automáticamente
+        // Mostrar el panel de admin automáticamente SOLO si la URL lo pide
         const panel = document.getElementById('adminPanel');
-        panel.style.display = 'block';
+        panel.style.removeProperty('display');
+        panel.style.removeProperty('visibility');
+        panel.style.removeProperty('opacity');
+        panel.classList.add('show');
         // Enfocar el campo de contraseña
         const passwordField = document.getElementById('adminPassword');
         if (passwordField) {
             passwordField.focus();
+        }
+    } else {
+        // Por defecto, ocultar el panel de admin
+        const panel = document.getElementById('adminPanel');
+        if(panel) {
+            panel.classList.remove('show');
+            panel.style.display = 'none';
+            panel.style.visibility = 'hidden';
+            panel.style.opacity = '0';
         }
     }
 }
@@ -1117,7 +1140,11 @@ async function deleteGalleryItem(imageId) {
 }
 
 function closeAdminPanel() {
-    document.getElementById('adminPanel').style.display = 'none';
+    const panel = document.getElementById('adminPanel');
+    panel.classList.remove('show');
+    panel.style.display = 'none';
+    panel.style.visibility = 'hidden';
+    panel.style.opacity = '0';
 }
 
 function adminLogin() {
@@ -1131,6 +1158,12 @@ function adminLogin() {
             document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
             loadGallery(currentCategory);
             showNotification('¡Acceso de administrador concedido!', 'success');
+            
+            // Cerrar el panel de admin y redirigir a la página principal
+            closeAdminPanel();
+            setTimeout(() => {
+                window.location.href = window.location.origin + window.location.pathname;
+            }, 1000); // Esperar 1 segundo para que se vea la notificación
         })
         .catch(error => {
             showNotification('Correo o contraseña incorrectos', 'error');
@@ -1161,12 +1194,15 @@ firebase.auth().onAuthStateChanged(function(user) {
         document.getElementById('adminInterface').classList.remove('hidden');
         document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
         loadGallery(currentCategory);
+        // NO mostrar el panel admin automáticamente
+        // document.getElementById('adminPanel').style.display = 'block';
     } else {
         isAdmin = false;
         document.getElementById('adminLogin').classList.remove('hidden');
         document.getElementById('adminInterface').classList.add('hidden');
         document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
         loadGallery(currentCategory);
+        // document.getElementById('adminPanel').style.display = 'none';
     }
 });
 
