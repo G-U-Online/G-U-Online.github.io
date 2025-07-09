@@ -87,6 +87,35 @@ let socialLinks = {
     }
 };
 
+// Valores por defecto de socialLinks
+const defaultSocialLinks = {
+    instagram: {
+        url: "https://www.instagram.com/g_u_sketch/",
+        icon: "fab fa-instagram",
+        enabled: true
+    },
+    x: {
+        url: "https://x.com/G_U_Sketch",
+        icon: "custom-x-icon",
+        enabled: true
+    },
+    tumblr: {
+        url: "https://www.tumblr.com/blog/g-u-sketch",
+        icon: "fab fa-tumblr",
+        enabled: true
+    },
+    tiktok: {
+        url: "https://www.tiktok.com/@g_u_sketch",
+        icon: "fab fa-tiktok",
+        enabled: true
+    },
+    deviantart: {
+        url: "https://www.deviantart.com/g-u-sketch",
+        icon: "fab fa-deviantart",
+        enabled: true
+    }
+};
+
 // Carrusel automático
 let carouselCurrentIndex = 0;
 let carouselInterval = null;
@@ -198,10 +227,21 @@ async function loadSiteConfigFromFirestore() {
         const doc = await firebase.firestore().doc(SITE_CONFIG_DOC).get();
         if (doc.exists) {
             siteConfig = { ...siteConfig, ...doc.data() };
+            // Si falta socialLinks, usar los valores por defecto
+            if (!siteConfig.socialLinks) {
+                siteConfig.socialLinks = defaultSocialLinks;
+            }
+        } else {
+            // Si no existe el doc, inicializar socialLinks
+            siteConfig.socialLinks = defaultSocialLinks;
         }
     } catch (error) {
         showNotification('Error al cargar configuración de Firebase', 'error');
         console.error(error);
+        // En caso de error, usar valores por defecto
+        if (!siteConfig.socialLinks) {
+            siteConfig.socialLinks = defaultSocialLinks;
+        }
     }
 }
 
@@ -232,6 +272,8 @@ function saveAllData() {
     localStorage.setItem('portfolioCarouselData', JSON.stringify(carouselData));
     localStorage.setItem('portfolioCategories', JSON.stringify(categories));
     localStorage.setItem('portfolioGalleryData', JSON.stringify(galleryData));
+    // Asegurar que socialLinks siempre esté presente
+    if (!siteConfig.socialLinks) siteConfig.socialLinks = defaultSocialLinks;
     saveSiteConfigToFirestore();
 }
 
