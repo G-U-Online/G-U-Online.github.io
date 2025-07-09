@@ -292,6 +292,7 @@ section.container.my-5 {
     background: none;
     color: white;
     padding: 1.5rem;
+    z-index: 10; /* Mayor que el degradado (z-index: 5) */
 }
 
 /* Estilos para cuando no hay imágenes */
@@ -1268,4 +1269,39 @@ section.container.my-5 {
     background: #667eea;
     color: #fff;
     box-shadow: 0 8px 24px rgba(102,126,234,0.18);
+} 
+
+/* Degradado hover para las imágenes del carrusel */
+.carousel-item::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 35%; /* Un tercio aproximadamente */
+    background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 50%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 5; /* Debajo del texto */
+}
+
+.carousel-item:hover::after {
+    opacity: 1;
+}
+
+.carousel-item:hover img {
+    transform: scale(1.05);
+} 
+
+/* Mejorar legibilidad del texto del carrusel */
+.carousel-overlay h5 {
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.carousel-overlay p {
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+    margin-bottom: 0;
 } 

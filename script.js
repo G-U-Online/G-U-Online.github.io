@@ -1268,7 +1268,7 @@ function loadCarouselEditor() {
 
 
 
-function editCarouselItem(index) {
+async function editCarouselItem(index) {
     const item = carouselData[index];
     if (!item) return;
 
@@ -1278,26 +1278,76 @@ function editCarouselItem(index) {
     const newDesc = prompt('Nueva descripción:', item.description);
     if (newDesc === null) return;
 
+    // Actualizar datos locales
     item.title = newTitle;
     item.description = newDesc;
 
-    saveAllData();
-    loadCarousel();
-    loadCarouselEditor();
-    showNotification('Elemento del carrusel actualizado', 'success');
+    try {
+        if (isFirebaseConfigured() && item.id) {
+            // Actualizar en Firebase
+            const updateData = {
+                title: newTitle,
+                description: newDesc
+            };
+            await updateInFirestore('carousel', item.id, updateData);
+            showNotification('Elemento del carrusel actualizado en Firebase', 'success');
+        } else {
+            // Solo guardar localmente si no hay Firebase
+            saveAllData();
+            showNotification('Elemento del carrusel actualizado localmente', 'success');
+        }
+        
+        // Actualizar vista
+        loadCarousel();
+        loadCarouselEditor();
+    } catch (error) {
+        console.error('Error actualizando elemento del carrusel:', error);
+        showNotification('Error al actualizar el elemento', 'error');
+        // Revertir cambios locales si falla Firebase
+        await loadCarouselFromFirebase();
+        loadCarouselEditor();
+    }
 }
 
-function moveCarouselItem(index, direction) {
+async function moveCarouselItem(index, direction) {
     const newIndex = index + direction;
     if (newIndex < 0 || newIndex >= carouselData.length) return;
 
+    // Mover elemento en datos locales
     const item = carouselData.splice(index, 1)[0];
     carouselData.splice(newIndex, 0, item);
 
-    saveAllData();
-    loadCarousel();
-    loadCarouselEditor();
-    showNotification('Orden del carrusel actualizado', 'success');
+    try {
+        if (isFirebaseConfigured()) {
+            // Actualizar orden en Firebase - necesitamos actualizar los timestamps
+            // para que el orden se mantenga correcto
+            const now = Date.now();
+            const updatePromises = carouselData.map((item, idx) => {
+                if (item.id) {
+                    const newTimestamp = now - (carouselData.length - idx) * 1000; // Espaciar timestamps
+                    return updateInFirestore('carousel', item.id, { timestamp: newTimestamp });
+                }
+                return Promise.resolve();
+            });
+            
+            await Promise.all(updatePromises);
+            showNotification('Orden del carrusel actualizado en Firebase', 'success');
+        } else {
+            // Solo guardar localmente si no hay Firebase
+            saveAllData();
+            showNotification('Orden del carrusel actualizado localmente', 'success');
+        }
+        
+        // Actualizar vista
+        loadCarousel();
+        loadCarouselEditor();
+    } catch (error) {
+        console.error('Error actualizando orden del carrusel:', error);
+        showNotification('Error al actualizar el orden', 'error');
+        // Revertir cambios locales si falla Firebase
+        await loadCarouselFromFirebase();
+        loadCarouselEditor();
+    }
 }
 
 async function deleteCarouselItem(index) {
