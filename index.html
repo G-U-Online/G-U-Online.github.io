@@ -282,6 +282,58 @@
     </div>
 
     <!-- ==========================================================================
+         EDITOR DE GALERÍA
+         ========================================================================== -->
+    <div class="admin-panel" id="galleryEditor">
+        <div class="admin-content" style="max-width: 800px;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3>Editor de Galería</h3>
+                <button class="btn btn-secondary" onclick="closeGalleryEditor()">Cerrar</button>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-8">
+                    <h5>Imágenes Actuales</h5>
+                    <div id="galleryItemsList" class="mb-3">
+                        <!-- Lista de imágenes actuales -->
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <h5>Agregar Nueva Imagen</h5>
+                    <div class="mb-3 text-center">
+                        <img id="galleryImagePreview" src="" alt="Preview" style="display:none;max-width:100%;max-height:120px;margin-bottom:10px;border-radius:8px;" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="galleryImageFile" class="form-label">Imagen:</label>
+                        <input type="file" class="form-control" id="galleryImageFile" accept="image/*">
+                    </div>
+                    <div class="mb-3">
+                        <label for="galleryImageTitle" class="form-label">Título:</label>
+                        <input type="text" class="form-control" id="galleryImageTitle" placeholder="Título de la imagen">
+                    </div>
+                    <div class="mb-3">
+                        <label for="galleryImageDesc" class="form-label">Descripción:</label>
+                        <textarea class="form-control" id="galleryImageDesc" rows="2" placeholder="Descripción corta"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="galleryImageDate" class="form-label">Fecha:</label>
+                        <input type="date" class="form-control" id="galleryImageDate">
+                    </div>
+                    <div class="mb-3">
+                        <label for="galleryImageCategory" class="form-label">Categoría:</label>
+                        <select class="form-control" id="galleryImageCategory">
+                            <!-- Las opciones se cargarán dinámicamente -->
+                        </select>
+                    </div>
+                    <button class="btn btn-success w-100" onclick="addGalleryImage()">
+                        <i class="fas fa-plus"></i> Agregar a la Galería
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================================================
          EDITOR DE SECCIONES
          ========================================================================== -->
     <div class="admin-panel" id="sectionEditor">

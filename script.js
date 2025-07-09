@@ -493,7 +493,7 @@ function openImageModal(imageId) {
         modalDescription.innerHTML = `<p>${image.description || ''}</p>`;
     }
     if (modalDate) {
-        let fecha = image.date ? new Date(image.date) : null;
+        let fecha = image.timestamp ? new Date(image.timestamp) : null;
         modalDate.textContent = fecha ? fecha.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Sin fecha';
     }
 
@@ -638,7 +638,8 @@ async function loadGalleryFromFirebase() {
                 title: item.title,
                 description: item.description,
                 category: category,
-                fileName: item.fileName
+                fileName: item.fileName,
+                timestamp: item.timestamp
             });
         });
 
@@ -696,83 +697,304 @@ function checkCarouselStatus() {
 
 // Función para descargar imágenes automáticamente
 function downloadImage(file, fileName) {
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(file);
-    link.download = fileName;
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
+    const url = URL.createObjectURL(file);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
 
-// Función para agregar imagen a la galería
-async function addImageToGallery() {
-    // Verificar configuración de Firebase
+// ==========================================================================
+// FUNCIONES DE ADMINISTRACIÓN
+// ==========================================================================
+async function addCarouselImage() {
     if (showFirebaseConfigError()) return;
-
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.onchange = async function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        if (!file.type.startsWith('image/')) {
-            showNotification('Por favor, selecciona un archivo de imagen válido.', 'error');
-            return;
-        }
-
-        if (file.size > 50 * 1024 * 1024) {
-            showNotification('El archivo es demasiado grande. Máximo 50MB.', 'error');
-            return;
-        }
-
-        // Solicitar información de la imagen
-        const title = prompt('Título de la imagen:');
-        if (!title) return;
-
-        const description = prompt('Descripción de la imagen:');
-        if (!description) return;
-
-        // Seleccionar categoría
-        const categoryOptions = Object.keys(categories).map(key => `${key}: ${categories[key].name}`).join('\n');
-        const categoryKey = prompt(`Selecciona la categoría (escribe la clave):\n${categoryOptions}`);
+    
+    const fileInput = document.getElementById('carouselImageFile');
+    const titleInput = document.getElementById('carouselImageTitle');
+    const descInput = document.getElementById('carouselImageDesc');
+    
+    const file = fileInput.files[0];
+    const title = titleInput.value.trim();
+    const description = descInput.value.trim();
+    
+    if (!file) {
+        showNotification('Por favor, selecciona una imagen.', 'error');
+        return;
+    }
+    
+    if (!title) {
+        showNotification('Por favor, proporciona un título para la imagen.', 'error');
+        return;
+    }
+    
+    if (!file.type.startsWith('image/')) {
+        showNotification('Por favor, selecciona un archivo de imagen válido.', 'error');
+        return;
+    }
+    
+    if (file.size > 50 * 1024 * 1024) {
+        showNotification('El archivo es demasiado grande. Máximo 50MB.', 'error');
+        return;
+    }
+    
+    showNotification('Subiendo imagen...', 'info');
+    
+    try {
+        const uploadResult = await uploadImageToFirebase(file);
         
-        if (!categoryKey || !categories[categoryKey]) {
-            showNotification('Categoría inválida', 'error');
-            return;
-        }
+        const carouselDataObj = {
+            title: title,
+            description: description || 'Sin descripción',
+            category: 'featured',
+            imageUrl: uploadResult.url,
+            fileName: uploadResult.fileName,
+            timestamp: uploadResult.timestamp
+        };
+        
+        await saveToFirestore('carousel', carouselDataObj);
+        await loadCarouselFromFirebase();
+        loadCarouselEditor();
+        
+        // Limpiar formulario
+        fileInput.value = '';
+        titleInput.value = '';
+        descInput.value = '';
+        
+        showNotification('Imagen agregada al carrusel exitosamente!', 'success');
+        
+    } catch (error) {
+        console.error('Error al agregar imagen al carrusel:', error);
+        showNotification('Error al subir la imagen. Intenta de nuevo.', 'error');
+    }
+}
 
-        try {
-            showNotification('Subiendo imagen...', 'info');
+async function addImageToGallery() {
+    if (showFirebaseConfigError()) return;
+    openGalleryEditor();
+}
 
-            // Subir imagen a Firebase Storage
-            const uploadResult = await uploadImageToFirebase(file, 'gallery');
+// ==========================================================================
+// EDITOR DE GALERÍA
+// ==========================================================================
+function openGalleryEditor() {
+    const editor = document.getElementById('galleryEditor');
+    editor.style.display = 'block';
+    loadGalleryEditor();
+}
+
+function closeGalleryEditor() {
+    document.getElementById('galleryEditor').style.display = 'none';
+}
+
+function loadGalleryEditor() {
+    const container = document.getElementById('galleryItemsList');
+    const categorySelect = document.getElementById('galleryImageCategory');
+    const fileInput = document.getElementById('galleryImageFile');
+    const previewImg = document.getElementById('galleryImagePreview');
+    // Preview de imagen
+    if (fileInput && previewImg) {
+        fileInput.onchange = function() {
+            const file = fileInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    previewImg.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                previewImg.src = '';
+                previewImg.style.display = 'none';
+            }
+        };
+    }
+    
+    // Cargar opciones de categorías
+    categorySelect.innerHTML = '<option value="">Selecciona una categoría</option>';
+    Object.entries(categories).forEach(([key, category]) => {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = category.name;
+        categorySelect.appendChild(option);
+    });
+    
+    // Mostrar todas las imágenes de la galería
+    container.innerHTML = '';
+    
+    Object.entries(galleryData).forEach(([categoryKey, images]) => {
+        if (images.length > 0) {
+            const categoryTitle = document.createElement('h6');
+            categoryTitle.textContent = categories[categoryKey]?.name || categoryKey;
+            categoryTitle.className = 'text-muted mb-2';
+            container.appendChild(categoryTitle);
             
-            // Guardar datos en Firestore
-            const galleryData = {
-                title: title,
-                description: description,
-                category: categoryKey,
-                imageUrl: uploadResult.url,
-                fileName: uploadResult.fileName,
-                timestamp: uploadResult.timestamp
-            };
-
-            await saveToFirestore('gallery', galleryData);
-
-            // Recargar galería
-            await loadGalleryFromFirebase();
-            loadGallery(currentCategory);
-
-            showNotification('Imagen agregada a la galería exitosamente!', 'success');
-        } catch (error) {
-            console.error('Error agregando imagen a la galería:', error);
-            showNotification('Error al subir la imagen. Intenta de nuevo.', 'error');
+            images.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'gallery-item-admin';
+                itemDiv.innerHTML = `
+                    <img src="${item.src}" alt="${item.title}" onerror="this.src='imagenes/sin-foto.png'">
+                    <div class="item-info">
+                        <h6>${item.title}</h6>
+                        <p class="text-muted mb-0">${item.description}</p>
+                        <small class="text-muted">Categoría: ${categories[item.category]?.name || item.category}</small>
+                    </div>
+                    <div class="item-controls">
+                        <button class="btn btn-sm btn-outline-primary" onclick="editGalleryItem('${item.id}')" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteGalleryItem('${item.id}')" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(itemDiv);
+            });
         }
-    };
-    input.click();
+    });
+}
+
+async function addGalleryImage() {
+    if (showFirebaseConfigError()) return;
+    const fileInput = document.getElementById('galleryImageFile');
+    const titleInput = document.getElementById('galleryImageTitle');
+    const descInput = document.getElementById('galleryImageDesc');
+    const dateInput = document.getElementById('galleryImageDate');
+    const categorySelect = document.getElementById('galleryImageCategory');
+    const file = fileInput.files[0];
+    const title = titleInput.value.trim();
+    const description = descInput.value.trim();
+    const categoryKey = categorySelect.value;
+    const dateValue = dateInput.value;
+    if (!file) {
+        showNotification('Por favor, selecciona una imagen.', 'error');
+        return;
+    }
+    if (!title) {
+        showNotification('Por favor, proporciona un título para la imagen.', 'error');
+        return;
+    }
+    if (!categoryKey) {
+        showNotification('Por favor, selecciona una categoría.', 'error');
+        return;
+    }
+    if (!file.type.startsWith('image/')) {
+        showNotification('Por favor, selecciona un archivo de imagen válido.', 'error');
+        return;
+    }
+    if (file.size > 50 * 1024 * 1024) {
+        showNotification('El archivo es demasiado grande. Máximo 50MB.', 'error');
+        return;
+    }
+    showNotification('Subiendo imagen...', 'info');
+    try {
+        const uploadResult = await uploadImageToFirebase(file);
+        const galleryDataObj = {
+            title: title,
+            description: description || '',
+            category: categoryKey,
+            imageUrl: uploadResult.url,
+            fileName: uploadResult.fileName,
+            timestamp: dateValue ? new Date(dateValue).getTime() : uploadResult.timestamp
+        };
+        await saveToFirestore('gallery', galleryDataObj);
+        await loadGalleryFromFirebase();
+        loadGallery(currentCategory);
+        loadGalleryEditor();
+        // Limpiar formulario
+        fileInput.value = '';
+        titleInput.value = '';
+        descInput.value = '';
+        dateInput.value = '';
+        categorySelect.value = '';
+        const previewImg = document.getElementById('galleryImagePreview');
+        if (previewImg) {
+            previewImg.src = '';
+            previewImg.style.display = 'none';
+        }
+        showNotification('Imagen agregada a la galería exitosamente!', 'success');
+    } catch (error) {
+        console.error('Error al agregar imagen a la galería:', error);
+        showNotification('Error al subir la imagen. Intenta de nuevo.', 'error');
+    }
+}
+
+function editGalleryItem(imageId) {
+    const image = findImageById(imageId);
+    if (!image) return;
+    const newTitle = prompt('Nuevo título:', image.title);
+    if (newTitle === null) return;
+    const newDesc = prompt('Nueva descripción:', image.description);
+    if (newDesc === null) return;
+    // Mostrar opciones de categoría
+    const categoryOptions = Object.keys(categories).map(key => `${key}: ${categories[key].name}`).join('\n');
+    const newCategory = prompt(`Nueva categoría (escribe la clave):\n${categoryOptions}`, image.category);
+    if (newCategory === null) return;
+    if (!categories[newCategory]) {
+        showNotification('Categoría inválida', 'error');
+        return;
+    }
+    // Editar fecha
+    let currentDate = image.timestamp ? new Date(image.timestamp).toISOString().slice(0,10) : '';
+    const newDate = prompt('Nueva fecha (YYYY-MM-DD):', currentDate);
+    let newTimestamp = image.timestamp;
+    if (newDate !== null && newDate !== '') {
+        newTimestamp = new Date(newDate).getTime();
+    }
+    image.title = newTitle;
+    image.description = newDesc;
+    image.category = newCategory;
+    image.timestamp = newTimestamp;
+    saveAllData();
+    loadGallery(currentCategory);
+    loadGalleryEditor();
+    showNotification('Imagen de galería actualizada', 'success');
+}
+
+async function deleteGalleryItem(imageId) {
+    if (!confirm('¿Estás seguro de que quieres eliminar esta imagen de la galería?')) {
+        return;
+    }
+    
+    const image = findImageById(imageId);
+    if (!image) return;
+    
+    try {
+        if (isFirebaseConfigured() && image.id) {
+            // Eliminar de Firebase
+            await deleteFromFirestore('gallery', image.id);
+            
+            // Eliminar imagen de Storage si existe
+            if (image.fileName) {
+                try {
+                    await deleteImageFromStorage(image.fileName);
+                } catch (storageError) {
+                    console.warn('No se pudo eliminar la imagen de Storage:', storageError);
+                }
+            }
+            
+            // Recargar desde Firebase
+            await loadGalleryFromFirebase();
+        } else {
+            // Eliminar de datos locales
+            const category = image.category;
+            const index = galleryData[category].findIndex(img => img.id === imageId);
+            if (index !== -1) {
+                galleryData[category].splice(index, 1);
+                saveAllData();
+                loadGallery(currentCategory);
+            }
+        }
+        
+        loadGalleryEditor();
+        showNotification('Imagen eliminada de la galería', 'success');
+    } catch (error) {
+        console.error('Error eliminando imagen de la galería:', error);
+        showNotification('Error al eliminar la imagen', 'error');
+    }
 }
 
 function closeAdminPanel() {
@@ -865,63 +1087,7 @@ function loadCarouselEditor() {
     });
 }
 
-async function addCarouselImage() {
-    // Verificar configuración de Firebase
-    if (showFirebaseConfigError()) return;
 
-    const fileInput = document.getElementById('carouselImageFile');
-    const titleInput = document.getElementById('carouselImageTitle');
-    const descInput = document.getElementById('carouselImageDesc');
-
-    if (!fileInput.files[0] || !titleInput.value.trim()) {
-        showNotification('Por favor, selecciona una imagen y proporciona un título.', 'error');
-        return;
-    }
-
-    const file = fileInput.files[0];
-    if (!file.type.startsWith('image/')) {
-        showNotification('Por favor, selecciona un archivo de imagen válido.', 'error');
-        return;
-    }
-
-    if (file.size > 50 * 1024 * 1024) {
-        showNotification('El archivo es demasiado grande. Máximo 50MB.', 'error');
-        return;
-    }
-
-    try {
-        showNotification('Subiendo imagen...', 'info');
-
-        // Subir imagen a Firebase Storage
-        const uploadResult = await uploadImageToFirebase(file, 'carousel');
-        
-        // Guardar datos en Firestore
-        const carouselData = {
-            title: titleInput.value,
-            description: descInput.value || 'Sin descripción',
-            category: 'featured',
-            imageUrl: uploadResult.url,
-            fileName: uploadResult.fileName,
-            timestamp: uploadResult.timestamp
-        };
-
-        const docId = await saveToFirestore('carousel', carouselData);
-
-        // Limpiar formulario
-        fileInput.value = '';
-        titleInput.value = '';
-        descInput.value = '';
-
-        // Recargar carrusel
-        await loadCarouselFromFirebase();
-        loadCarouselEditor();
-
-        showNotification('Imagen agregada al carrusel exitosamente!', 'success');
-    } catch (error) {
-        console.error('Error agregando imagen al carrusel:', error);
-        showNotification('Error al subir la imagen. Intenta de nuevo.', 'error');
-    }
-}
 
 function editCarouselItem(index) {
     const item = carouselData[index];
@@ -1291,33 +1457,34 @@ function changeProfileImage() {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    input.onchange = function(e) {
+    
+    input.onchange = async function(e) {
         const file = e.target.files[0];
-        if (file) {
-            // Generar nombre único para el archivo
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            const originalName = file.name.replace(/\.[^/.]+$/, ""); // Sin extensión
-            const extension = file.name.split('.').pop();
-            const fileName = `perfil_${originalName}_${timestamp}.${extension}`;
-            const filePath = `imagenes/${fileName}`;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                siteConfig.profileImage = filePath; // Usar ruta relativa
-                const profileImg = document.querySelector('.profile-image');
-                profileImg.src = filePath;
-                setImageFallback(profileImg);
-                saveAllData();
-                
-                // Descargar la imagen automáticamente
-                downloadImage(file, fileName);
-                
-                showNotification(`Foto de perfil actualizada! Archivo: ${fileName}`, 'success');
-                showNotification('Recuerda hacer commit y push para que los cambios sean visibles en GitHub Pages', 'info');
-            };
-            reader.readAsDataURL(file);
+        if (!file) return;
+        
+        if (!file.type.startsWith('image/')) {
+            showNotification('Por favor, selecciona un archivo de imagen válido.', 'error');
+            return;
+        }
+        
+        if (file.size > 50 * 1024 * 1024) {
+            showNotification('El archivo es demasiado grande. Máximo 50MB.', 'error');
+            return;
+        }
+        
+        try {
+            showNotification('Subiendo imagen...', 'info');
+            const uploadResult = await uploadImageToFirebase(file);
+            siteConfig.profileImage = uploadResult.url;
+            saveAllData();
+            applySiteConfig();
+            showNotification('Foto de perfil actualizada!', 'success');
+        } catch (error) {
+            console.error('Error al subir imagen de perfil:', error);
+            showNotification('Error al subir la imagen de perfil.', 'error');
         }
     };
+    
     input.click();
 }
 
@@ -1331,12 +1498,13 @@ function setupEventListeners() {
             closeImageModal();
             closeAdminPanel();
             closeCarouselEditor();
+            closeGalleryEditor();
             closeSectionEditor();
         }
     });
 
     // Cerrar modales al hacer clic fuera de ellos
-    const modals = ['imageModal', 'adminPanel', 'carouselEditor', 'sectionEditor'];
+    const modals = ['imageModal', 'adminPanel', 'carouselEditor', 'galleryEditor', 'sectionEditor'];
     modals.forEach(modalId => {
         const modal = document.getElementById(modalId);
         if (modal) {
@@ -1345,6 +1513,7 @@ function setupEventListeners() {
                     if (modalId === 'imageModal') closeImageModal();
                     else if (modalId === 'adminPanel') closeAdminPanel();
                     else if (modalId === 'carouselEditor') closeCarouselEditor();
+                    else if (modalId === 'galleryEditor') closeGalleryEditor();
                     else if (modalId === 'sectionEditor') closeSectionEditor();
                 }
             });
@@ -1437,6 +1606,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             startX = null;
         });
+    }
+
+    // Cambia el botón de 'Agregar Imagen a Galería' para que invoque el nuevo flujo
+    const btnAddGallery = document.querySelector('button.btn-success[onclick="addImageToGallery()"]');
+    if (btnAddGallery) {
+        btnAddGallery.onclick = addImageToGallery;
     }
 });
 

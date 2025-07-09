@@ -27,10 +27,10 @@ const auth = firebase.auth();
 // ==========================================================================
 
 // Función para subir imagen a Firebase Storage
-async function uploadImageToFirebase(file, folder = 'images') {
+async function uploadImageToFirebase(file) {
     try {
         const timestamp = Date.now();
-        const fileName = `${folder}/${timestamp}_${file.name}`;
+        const fileName = `ilustraciones/${timestamp}_${file.name}`;
         const storageRef = storage.ref();
         const imageRef = storageRef.child(fileName);
         
