@@ -534,55 +534,49 @@ section.container.my-5 {
 .modal-ig-content {
     display: inline-flex;
     flex-direction: row;
-    background: #232526;
+    background: transparent; /* Sin fondo para evitar franjas */
     border-radius: 18px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.45);
     max-width: 1200px;
-    width: 98vw;
+    width: auto;
     max-height: 92vh;
     min-height: 320px;
     align-items: stretch;
-    justify-content: center;
+    justify-content: flex-start;
     margin: 0;
-    overflow: visible;
+    overflow: hidden;
 }
+
 .modal-ig-image-container {
-    background: #232526;
+    position: relative;
+    flex: 1 1 auto; /* Permitir que se ajuste */
     display: flex;
-    align-items: stretch;
+    align-items: center;
     justify-content: center;
-    min-width: 0;
-    width: 60%;
-    max-width: 60%;
-    height: auto;
-    margin: 0;
-    overflow: visible;
+    background: transparent; /* Sin fondo */
+    border-radius: 18px 0 0 18px; /* Solo esquinas izquierdas redondeadas */
+    overflow: hidden;
 }
+
 .modal-ig-image-container img {
-    display: block;
-    height: 100%;
     width: auto;
-    max-width: 100%;
+    height: auto;
+    max-width: 70vw;
     max-height: 92vh;
-    margin: auto 0;
-    border-radius: 0;
-    background: #232526;
-    box-shadow: none;
+    object-fit: contain;
+    display: block;
+    border-radius: 18px 0 0 18px; /* Solo esquinas izquierdas redondeadas */
 }
+
 .modal-ig-sidebar {
-    width: 40%;
-    max-width: 40%;
+    flex: 0 0 350px;
+    width: 350px;
     background: #232526;
     color: #e0e0e0;
-    display: flex;
-    flex-direction: column;
-    padding: 2.2rem 1.2rem 1.5rem 1.2rem;
+    padding: 2rem 1.5rem 1.5rem 1.5rem;
+    overflow-y: auto;
     position: relative;
-    justify-content: flex-start;
-    min-width: 220px;
-    height: auto;
-    margin: 0;
-    box-sizing: border-box;
+    border-radius: 0 18px 18px 0; /* Solo esquinas derechas redondeadas */
 }
 .close-modal {
     position: absolute;

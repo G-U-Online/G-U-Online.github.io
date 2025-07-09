@@ -29,22 +29,22 @@ let carouselData = [];
 // Categorías dinámicas
 let categories = {
     "comic-style": {
-        name: "Comic Style",
+        name: "Estilo Cómic",
         icon: "fas fa-mask",
         description: "Ilustraciones con estilo de cómic, personajes animados y escenas dinámicas"
     },
     "semi-realism": {
-        name: "Semi-Realism",
+        name: "Semi-Realismo",
         icon: "fas fa-user",
         description: "Retratos y arte con un enfoque semi-realista, técnicas de pintura digital"
     },
     "commissions": {
-        name: "Commissions",
+        name: "Comisiones",
         icon: "fas fa-handshake",
         description: "Trabajos por encargo, proyectos personalizados para clientes"
     },
     "personal-drawings": {
-        name: "Personal Drawings",
+        name: "Dibujos Personales",
         icon: "fas fa-heart",
         description: "Arte personal, experimentos creativos y estudios artísticos"
     }
