@@ -160,7 +160,8 @@ function showPrevCarouselImage() {
 // INICIALIZACIÓN
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', async function() {
-    loadAllData();
+    await loadAllData();
+    applySiteConfig();
     setupCategoryNavigation();
     
     // Cargar datos desde Firebase si está configurado
@@ -173,106 +174,82 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     loadGallery(currentCategory);
     setupEventListeners();
-    applySiteConfig();
     checkSecretAccess(); // Verificar acceso secreto mediante URL
 });
 
 // ==========================================================================
 // GESTIÓN DE DATOS
 // ==========================================================================
-function loadAllData() {
-    // Cargar configuración del sitio
-    const savedConfig = localStorage.getItem('portfolioSiteConfig');
-    if (savedConfig) {
-        siteConfig = { ...siteConfig, ...JSON.parse(savedConfig) };
-    }
+// === FIRESTORE CONFIG ===
+const SITE_CONFIG_DOC = 'siteConfig/main';
 
+async function saveSiteConfigToFirestore() {
+    try {
+        await firebase.firestore().doc(SITE_CONFIG_DOC).set(siteConfig);
+        showNotification('Configuración guardada en Firebase', 'success');
+    } catch (error) {
+        showNotification('Error al guardar configuración en Firebase', 'error');
+        console.error(error);
+    }
+}
+
+async function loadSiteConfigFromFirestore() {
+    try {
+        const doc = await firebase.firestore().doc(SITE_CONFIG_DOC).get();
+        if (doc.exists) {
+            siteConfig = { ...siteConfig, ...doc.data() };
+        }
+    } catch (error) {
+        showNotification('Error al cargar configuración de Firebase', 'error');
+        console.error(error);
+    }
+}
+
+// Sobrescribir loadAllData para usar Firestore
+async function loadAllData() {
+    await loadSiteConfigFromFirestore();
     // Cargar datos del carrusel
     const savedCarousel = localStorage.getItem('portfolioCarouselData');
     if (savedCarousel) {
         carouselData = JSON.parse(savedCarousel);
-        // Convertir imágenes Base64 a rutas relativas si es necesario
         carouselData = convertBase64ToRelativePaths(carouselData);
     }
-
     // Cargar categorías
     const savedCategories = localStorage.getItem('portfolioCategories');
     if (savedCategories) {
-        categories = JSON.parse(savedCategories);
+        categories = { ...categories, ...JSON.parse(savedCategories) };
     }
-
     // Cargar datos de galería
     const savedGallery = localStorage.getItem('portfolioGalleryData');
     if (savedGallery) {
-        galleryData = JSON.parse(savedGallery);
-    }
-
-    // Cargar redes sociales
-    const savedSocial = localStorage.getItem('portfolioSocialLinks');
-    if (savedSocial) {
-        socialLinks = JSON.parse(savedSocial);
+        galleryData = { ...galleryData, ...JSON.parse(savedGallery) };
     }
 }
 
+// Modificar saveAllData para guardar en Firestore
 function saveAllData() {
     localStorage.setItem('portfolioSiteConfig', JSON.stringify(siteConfig));
     localStorage.setItem('portfolioCarouselData', JSON.stringify(carouselData));
     localStorage.setItem('portfolioCategories', JSON.stringify(categories));
     localStorage.setItem('portfolioGalleryData', JSON.stringify(galleryData));
-    localStorage.setItem('portfolioSocialLinks', JSON.stringify(socialLinks));
+    saveSiteConfigToFirestore();
 }
 
 // ==========================================================================
 // APLICACIÓN DE CONFIGURACIÓN
 // ==========================================================================
 function applySiteConfig() {
-    // Aplicar nombre del artista
-    const artistNameElements = document.querySelectorAll('[data-field="artistName"]');
-    artistNameElements.forEach(el => {
-        el.textContent = siteConfig.artistName;
-    });
-
-    // Aplicar subtítulo
-    const subtitleElements = document.querySelectorAll('[data-field="subtitle"]');
-    subtitleElements.forEach(el => {
-        el.textContent = siteConfig.subtitle;
-    });
-
-    // Aplicar títulos de secciones
-    const featuredTitle = document.querySelector('[data-field="featuredTitle"]');
-    if (featuredTitle) featuredTitle.textContent = siteConfig.featuredTitle;
-
-    const aboutTitle = document.querySelector('[data-field="aboutTitle"]');
-    if (aboutTitle) aboutTitle.textContent = siteConfig.aboutTitle;
-
-    const contactTitle = document.querySelector('[data-field="contactTitle"]');
-    if (contactTitle) contactTitle.textContent = siteConfig.contactTitle;
-
-    // Aplicar descripción de contacto
-    const contactDesc = document.querySelector('[data-field="contactDescription"]');
-    if (contactDesc) contactDesc.textContent = siteConfig.contactDescription;
-
-    // Aplicar email
-    const emailElements = document.querySelectorAll('[data-field="email"]');
-    emailElements.forEach(el => {
-        el.href = `mailto:${siteConfig.email}`;
-    });
-
-    // Aplicar biografía
-    const biographyContent = document.querySelector('.biography-content');
-    if (biographyContent) {
-        biographyContent.innerHTML = siteConfig.biography;
-    }
-
-    // Aplicar imagen de perfil
-    const profileImage = document.querySelector('.profile-image');
-    if (profileImage && siteConfig.profileImage) {
-        profileImage.src = siteConfig.profileImage;
-        setImageFallback(profileImage);
-    }
-
-    // Cargar redes sociales
-    loadSocialLinks();
+    document.querySelectorAll('[data-field="artistName"]').forEach(el => el.textContent = siteConfig.artistName || '');
+    document.querySelectorAll('[data-field="subtitle"]').forEach(el => el.textContent = siteConfig.subtitle || '');
+    document.querySelectorAll('[data-field="aboutTitle"]').forEach(el => el.textContent = siteConfig.aboutTitle || '');
+    document.querySelectorAll('[data-field="contactTitle"]').forEach(el => el.textContent = siteConfig.contactTitle || '');
+    document.querySelectorAll('[data-field="contactDescription"]').forEach(el => el.textContent = siteConfig.contactDescription || '');
+    // Biografía
+    const bio = document.querySelector('.biography-content');
+    if (bio && siteConfig.biography) bio.innerHTML = `<p class='lead'>${siteConfig.biography}</p>`;
+    // Foto de perfil
+    const profileImg = document.querySelector('.profile-image');
+    if (profileImg && siteConfig.profileImage) profileImg.src = siteConfig.profileImage;
 }
 
 // ==========================================================================
