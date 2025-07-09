@@ -481,6 +481,7 @@ function openImageModal(imageId) {
     const modalTitle = document.getElementById('modalTitle');
     const modalDescription = document.getElementById('modalDescription');
     const modalDate = document.getElementById('modalDate');
+    const overlay = document.getElementById('imageModalOverlay');
 
     if (modalImage) {
         modalImage.src = image.src;
@@ -496,17 +497,23 @@ function openImageModal(imageId) {
         let fecha = image.timestamp ? new Date(image.timestamp) : null;
         modalDate.textContent = fecha ? fecha.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Sin fecha';
     }
-
     if (modal) {
         modal.classList.add('show');
         document.body.style.overflow = 'hidden';
+    }
+    if (overlay) {
+        overlay.classList.add('show');
     }
 }
 
 function closeImageModal() {
     const modal = document.getElementById('imageModal');
+    const overlay = document.getElementById('imageModalOverlay');
     modal.classList.remove('show');
     document.body.style.overflow = 'auto';
+    if (overlay) {
+        overlay.classList.remove('show');
+    }
 }
 
 function findImageById(id) {
@@ -712,40 +719,61 @@ function downloadImage(file, fileName) {
 // ==========================================================================
 async function addCarouselImage() {
     if (showFirebaseConfigError()) return;
-    
+    // Mostrar modal de opciones
+    const modal = document.createElement('div');
+    modal.className = 'image-modal show';
+    modal.id = 'addCarouselOptionModal';
+    modal.innerHTML = `
+        <div class="modal-ig-content" style="max-width:400px;min-width:320px;flex-direction:column;align-items:center;">
+            <h4>¿Qué deseas hacer?</h4>
+            <div style="display:flex;gap:1.5rem;justify-content:center;margin:2rem 0;">
+                <button class="btn btn-primary" id="btnUploadNewCarousel">Subir nueva imagen</button>
+                <button class="btn btn-secondary" id="btnChooseExistingCarousel">Elegir existente</button>
+            </div>
+            <button class="btn btn-link" style="position:absolute;top:10px;right:18px;font-size:1.5rem;" onclick="document.body.removeChild(document.getElementById('addCarouselOptionModal'))">&times;</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    document.getElementById('btnUploadNewCarousel').onclick = function() {
+        document.body.removeChild(modal);
+        showCarouselUploadForm();
+    };
+    document.getElementById('btnChooseExistingCarousel').onclick = async function() {
+        document.body.removeChild(modal);
+        await openSelectExistingImageModal();
+    };
+}
+
+function showCarouselUploadForm() {
+    document.getElementById('carouselAddOptions').style.display = 'none';
+    document.getElementById('carouselUploadForm').style.display = 'block';
+}
+
+function addCarouselImage_upload() {
     const fileInput = document.getElementById('carouselImageFile');
     const titleInput = document.getElementById('carouselImageTitle');
     const descInput = document.getElementById('carouselImageDesc');
-    
     const file = fileInput.files[0];
     const title = titleInput.value.trim();
     const description = descInput.value.trim();
-    
     if (!file) {
         showNotification('Por favor, selecciona una imagen.', 'error');
         return;
     }
-    
     if (!title) {
         showNotification('Por favor, proporciona un título para la imagen.', 'error');
         return;
     }
-    
     if (!file.type.startsWith('image/')) {
         showNotification('Por favor, selecciona un archivo de imagen válido.', 'error');
         return;
     }
-    
     if (file.size > 50 * 1024 * 1024) {
         showNotification('El archivo es demasiado grande. Máximo 50MB.', 'error');
         return;
     }
-    
     showNotification('Subiendo imagen...', 'info');
-    
-    try {
-        const uploadResult = await uploadImageToFirebase(file);
-        
+    uploadImageToFirebase(file).then(uploadResult => {
         const carouselDataObj = {
             title: title,
             description: description || 'Sin descripción',
@@ -754,22 +782,94 @@ async function addCarouselImage() {
             fileName: uploadResult.fileName,
             timestamp: uploadResult.timestamp
         };
-        
-        await saveToFirestore('carousel', carouselDataObj);
+        return saveToFirestore('carousel', carouselDataObj);
+    }).then(async () => {
         await loadCarouselFromFirebase();
         loadCarouselEditor();
-        
-        // Limpiar formulario
+        // Limpiar formulario y volver a opciones
         fileInput.value = '';
         titleInput.value = '';
         descInput.value = '';
-        
+        document.getElementById('carouselUploadForm').style.display = 'none';
+        document.getElementById('carouselAddOptions').style.display = 'block';
         showNotification('Imagen agregada al carrusel exitosamente!', 'success');
-        
-    } catch (error) {
+    }).catch(error => {
         console.error('Error al agregar imagen al carrusel:', error);
         showNotification('Error al subir la imagen. Intenta de nuevo.', 'error');
-    }
+    });
+}
+
+function addCarouselImage_selectExisting() {
+    openSelectExistingImageModal();
+}
+
+async function openSelectExistingImageModal() {
+    const panel = document.getElementById('selectExistingImagePanel');
+    const gallery = document.getElementById('existingImagesGallery');
+    const form = document.getElementById('existingImageForm');
+    const titleInput = document.getElementById('existingImageTitle');
+    const descInput = document.getElementById('existingImageDesc');
+    let selectedImg = null;
+    // Limpiar
+    gallery.innerHTML = '';
+    form.style.display = 'none';
+    titleInput.value = '';
+    descInput.value = '';
+    // Unir imágenes de galería y carrusel (sin duplicados por src)
+    let images = [];
+    Object.values(galleryData).forEach(arr => images.push(...arr));
+    images.push(...carouselData);
+    const seen = new Set();
+    images = images.filter(img => {
+        if (!img.src || seen.has(img.src)) return false;
+        seen.add(img.src);
+        return true;
+    });
+    // Mostrar miniaturas
+    images.forEach(img => {
+        const thumb = document.createElement('img');
+        thumb.src = img.src;
+        thumb.alt = img.title || '';
+        thumb.style = 'width:90px;height:90px;object-fit:cover;cursor:pointer;border:2px solid transparent;border-radius:8px;margin:4px;';
+        thumb.onclick = function() {
+            // Seleccionar
+            Array.from(gallery.children).forEach(el => el.style.border = '2px solid transparent');
+            thumb.style.border = '2px solid #667eea';
+            selectedImg = img;
+            form.style.display = 'block';
+            titleInput.value = img.title || '';
+            descInput.value = img.description || '';
+        };
+        gallery.appendChild(thumb);
+    });
+    // Submit
+    form.onsubmit = async function(e) {
+        e.preventDefault();
+        if (!selectedImg) return;
+        // Guardar en carrusel
+        const carouselDataObj = {
+            title: titleInput.value.trim() || selectedImg.title || '',
+            description: descInput.value.trim() || '',
+            category: 'featured',
+            imageUrl: selectedImg.src,
+            fileName: selectedImg.fileName,
+            timestamp: Date.now()
+        };
+        await saveToFirestore('carousel', carouselDataObj);
+        await loadCarouselFromFirebase();
+        loadCarouselEditor();
+        closeSelectExistingImagePanel();
+        showNotification('Imagen agregada al carrusel exitosamente!', 'success');
+    };
+    // Mostrar panel
+    panel.style.display = 'flex';
+    setTimeout(()=>panel.classList.add('show'),10);
+}
+
+function closeSelectExistingImagePanel() {
+    const panel = document.getElementById('selectExistingImagePanel');
+    panel.classList.remove('show');
+    setTimeout(()=>{panel.style.display='none';},200);
 }
 
 async function addImageToGallery() {
@@ -1049,6 +1149,21 @@ function openCarouselEditor() {
     const editor = document.getElementById('carouselEditor');
     editor.style.display = 'block';
     loadCarouselEditor();
+    // Resetear panel derecho
+    const addOptions = document.getElementById('carouselAddOptions');
+    const uploadForm = document.getElementById('carouselUploadForm');
+    if (addOptions) addOptions.style.display = 'block';
+    if (uploadForm) {
+        uploadForm.style.display = 'none';
+        // Limpiar campos
+        uploadForm.reset && uploadForm.reset();
+        const fileInput = document.getElementById('carouselImageFile');
+        const titleInput = document.getElementById('carouselImageTitle');
+        const descInput = document.getElementById('carouselImageDesc');
+        if (fileInput) fileInput.value = '';
+        if (titleInput) titleInput.value = '';
+        if (descInput) descInput.value = '';
+    }
 }
 
 function closeCarouselEditor() {

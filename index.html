@@ -164,6 +164,8 @@
         </div>
     </section>
 
+    <!-- Overlay para modal de imagen -->
+    <div id="imageModalOverlay" class="modal-blur-overlay"></div>
     <!-- ==========================================================================
          MODAL DE IMAGEN (ESTILO INSTAGRAM)
          ========================================================================== -->
@@ -180,6 +182,30 @@
                 </div>
                 <div class="modal-ig-date" id="modalDate">Fecha</div>
             </div>
+        </div>
+    </div>
+
+    <!-- ==========================================================================
+         PANEL LATERAL SELECCIÓN DE IMAGEN EXISTENTE
+         ========================================================================== -->
+    <div class="sidebar-panel" id="selectExistingImagePanel" style="display:none;">
+        <div class="sidebar-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">Selecciona una imagen existente</h4>
+                <button class="btn btn-link text-white fs-3" onclick="closeSelectExistingImagePanel()">&times;</button>
+            </div>
+            <div id="existingImagesGallery" style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;max-height:300px;overflow:auto;margin-bottom:1rem;"></div>
+            <form id="existingImageForm" style="display:none;width:100%;max-width:350px;margin:auto;">
+                <div class="mb-2">
+                    <label for="existingImageTitle" class="form-label">Título:</label>
+                    <input type="text" class="form-control" id="existingImageTitle" placeholder="Título de la imagen">
+                </div>
+                <div class="mb-2">
+                    <label for="existingImageDesc" class="form-label">Descripción:</label>
+                    <textarea class="form-control" id="existingImageDesc" rows="2" placeholder="Descripción corta"></textarea>
+                </div>
+                <button type="submit" class="btn btn-success w-100">Agregar al Carrusel</button>
+            </form>
         </div>
     </div>
 
@@ -259,23 +285,29 @@
                         <!-- Lista de imágenes actuales -->
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-4" id="carouselAddPanel">
                     <h5>Agregar Nueva Imagen</h5>
-                    <div class="mb-3">
-                        <label for="carouselImageFile" class="form-label">Imagen:</label>
-                        <input type="file" class="form-control" id="carouselImageFile" accept="image/*">
+                    <div id="carouselAddOptions">
+                        <button class="btn btn-primary w-100 mb-2" onclick="showCarouselUploadForm()">Agregar imagen del ordenador</button>
+                        <button class="btn btn-secondary w-100 mb-2" onclick="addCarouselImage_selectExisting()">Seleccionar imagen</button>
                     </div>
-                    <div class="mb-3">
-                        <label for="carouselImageTitle" class="form-label">Título:</label>
-                        <input type="text" class="form-control" id="carouselImageTitle" placeholder="Título de la imagen">
-                    </div>
-                    <div class="mb-3">
-                        <label for="carouselImageDesc" class="form-label">Descripción:</label>
-                        <textarea class="form-control" id="carouselImageDesc" rows="2" placeholder="Descripción corta"></textarea>
-                    </div>
-                    <button class="btn btn-success w-100" onclick="addCarouselImage()">
-                        <i class="fas fa-plus"></i> Agregar al Carrusel
-                    </button>
+                    <form id="carouselUploadForm" style="display:none;">
+                        <div class="mb-3">
+                            <label for="carouselImageFile" class="form-label">Imagen:</label>
+                            <input type="file" class="form-control" id="carouselImageFile" accept="image/*">
+                        </div>
+                        <div class="mb-3">
+                            <label for="carouselImageTitle" class="form-label">Título:</label>
+                            <input type="text" class="form-control" id="carouselImageTitle" placeholder="Título de la imagen">
+                        </div>
+                        <div class="mb-3">
+                            <label for="carouselImageDesc" class="form-label">Descripción:</label>
+                            <textarea class="form-control" id="carouselImageDesc" rows="2" placeholder="Descripción corta"></textarea>
+                        </div>
+                        <button type="button" class="btn btn-success w-100" onclick="addCarouselImage_upload()">
+                            <i class="fas fa-plus"></i> Agregar al Carrusel
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
