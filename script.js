@@ -16,7 +16,7 @@ let siteConfig = {
     subtitle: "Ilustrador Digital | Diseñador Creativo",
     email: "gu.sketxh@gmail.com",
     profileImage: "imagenes/mi_foto_perfil.jpg",
-    biography: "¡Hola! Soy un ilustrador digital apasionado por crear mundos visuales únicos...",
+    biography: "",
     featuredTitle: "Ilustraciones Destacadas",
     aboutTitle: "Sobre Mí",
     contactTitle: "Visita mis redes sociales",
