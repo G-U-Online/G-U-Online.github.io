@@ -1703,6 +1703,10 @@ delete window.initializeExampleData;
 
 // Llamar a la inicialización cuando se carga la página
 document.addEventListener('DOMContentLoaded', function() {
+    const yearSpan = document.getElementById('footerYear');
+    if (yearSpan) {
+        yearSpan.textContent = new Date().getFullYear();
+    }
     // Ya no se cargan datos de ejemplo locales
     // Solo se cargan datos desde Firebase
     loadCarouselFromFirebase();
