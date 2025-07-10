@@ -156,3 +156,53 @@ Información de compresión: {
 - Verificar que la URL de descarga sea correcta
 - Comprobar que el archivo existe en Firebase Storage
 - Revisar la consola para errores de descompresión 
+
+---
+
+### 1. **Reglas de Firebase (Firestore y Storage)**
+- En la guía de configuración (`FIREBASE-SETUP.md`), las reglas de seguridad por defecto permiten escritura a cualquiera:
+  ```javascript
+  allow write: if true; // Temporalmente permitir escritura
+  ```
+- Solo en la sección “Seguridad (Opcional)” se sugiere cambiar a:
+  ```javascript
+  allow write: if request.auth != null; // Solo usuarios autenticados
+  ```
+- **Si no cambiaste las reglas en Firebase Console**, cualquiera puede escribir (subir, editar, borrar) desde cualquier lugar.
+
+---
+
+### 2. **Código del Proyecto**
+- El código de frontend (por ejemplo, en `script.js`) sí implementa un login de administrador y oculta la interfaz admin a usuarios no autenticados.
+- Sin embargo, **la verdadera seguridad depende de las reglas de Firebase**, no solo de la interfaz. Si las reglas permiten escribir a cualquiera, un atacante podría hacer peticiones directas a Firebase.
+
+---
+
+### 3. **¿Qué debes hacer para asegurar tu proyecto?**
+- **Verifica y actualiza las reglas de seguridad en Firebase Console**:
+  - Para Firestore:
+    ```javascript
+    allow read: if true;
+    allow write: if request.auth != null;
+    ```
+  - Para Storage:
+    ```javascript
+    allow read: if true;
+    allow write: if request.auth != null;
+    ```
+- Así, solo usuarios autenticados podrán subir, editar o borrar datos/archivos.
+
+---
+
+### 4. **¿Cómo saber si ya lo tienes seguro?**
+- Entra a la consola de Firebase → Firestore Database → Reglas y Storage → Reglas.
+- Si ves `allow write: if true;`, **no está seguro**.
+- Si ves `allow write: if request.auth != null;`, **sí está seguro**.
+
+---
+
+**Resumen:**  
+Tu frontend está preparado para distinguir entre admin y visitante, pero la seguridad real depende de las reglas en Firebase.  
+**Debes actualizar las reglas en Firebase Console** para que solo usuarios autenticados puedan modificar datos o subir archivos.
+
+¿Te gustaría que te guíe paso a paso para cambiar las reglas en Firebase? 
