@@ -237,88 +237,7 @@ const PORTFOLIO_CONFIG = {
     }
 };
 
-// ==========================================================================
-// FUNCIONES DE CONFIGURACIÓN
-// ==========================================================================
 
-/**
- * Obtiene un valor de configuración usando notación de puntos
- * Ejemplo: getConfig('theme.colors.primary')
- */
-function getConfig(path) {
-    return path.split('.').reduce((obj, key) => obj && obj[key], PORTFOLIO_CONFIG);
-}
-
-/**
- * Actualiza un valor de configuración
- * Ejemplo: setConfig('admin.password', 'nueva_contraseña')
- */
-function setConfig(path, value) {
-    const keys = path.split('.');
-    const lastKey = keys.pop();
-    const target = keys.reduce((obj, key) => obj[key], PORTFOLIO_CONFIG);
-    target[lastKey] = value;
-}
-
-/**
- * Aplica la configuración al sitio web
- * Esta función debe llamarse después de cargar la página
- */
-function applyConfig() {
-    // Aplicar información personal
-    const artistName = document.querySelector('.artist-name');
-    if (artistName) {
-        artistName.textContent = PORTFOLIO_CONFIG.personal.artistName;
-    }
-    
-    const subtitle = document.querySelector('.artist-subtitle');
-    if (subtitle) {
-        subtitle.textContent = PORTFOLIO_CONFIG.personal.subtitle;
-    }
-    
-    // Aplicar biografía
-    const biography = document.querySelector('.about-section .col-md-8');
-    if (biography && PORTFOLIO_CONFIG.personal.biography) {
-        biography.innerHTML = PORTFOLIO_CONFIG.personal.biography;
-    }
-    
-    // Aplicar enlaces sociales
-    const socialContainer = document.querySelector('.social-links');
-    if (socialContainer) {
-        socialContainer.innerHTML = '';
-        
-        Object.entries(PORTFOLIO_CONFIG.socialLinks).forEach(([key, social]) => {
-            if (social.enabled) {
-                const link = document.createElement('a');
-                link.href = social.url;
-                link.className = 'social-link';
-                link.target = '_blank';
-                link.innerHTML = `<i class="${social.icon}"></i>`;
-                socialContainer.appendChild(link);
-            }
-        });
-    }
-    
-    // Aplicar email de contacto
-    const emailButton = document.querySelector('.contact-btn');
-    if (emailButton) {
-        emailButton.href = `mailto:${PORTFOLIO_CONFIG.personal.email}`;
-    }
-    
-    // Aplicar título del sitio
-    document.title = PORTFOLIO_CONFIG.texts.siteTitle;
-    
-    // Aplicar colores del tema (opcional)
-    if (PORTFOLIO_CONFIG.theme.colors) {
-        const root = document.documentElement;
-        root.style.setProperty('--color-primary', PORTFOLIO_CONFIG.theme.colors.primary);
-        root.style.setProperty('--color-secondary', PORTFOLIO_CONFIG.theme.colors.secondary);
-        root.style.setProperty('--color-success', PORTFOLIO_CONFIG.theme.colors.success);
-        root.style.setProperty('--color-error', PORTFOLIO_CONFIG.theme.colors.error);
-    }
-    
-    console.log('Configuración aplicada correctamente');
-}
 
 // ==========================================================================
 // CONFIGURACIÓN DE COMPRESIÓN BROTLI
@@ -455,6 +374,3 @@ if (typeof module !== 'undefined' && module.exports) {
 
 // Para uso en navegador (sin módulos):
 window.PORTFOLIO_CONFIG = PORTFOLIO_CONFIG;
-window.getConfig = getConfig;
-window.setConfig = setConfig;
-window.applyConfig = applyConfig; 

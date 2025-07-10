@@ -40,7 +40,7 @@ async function compressImageWithBrotli(file, quality = null) {
         
         // Verificar si el archivo debe comprimirse
         if (typeof shouldCompressFile === 'function' && !shouldCompressFile(file)) {
-            console.log('Archivo no requiere compresión, usando original');
+    
             resolve(file);
             return;
         }
@@ -219,7 +219,7 @@ async function downloadAndDecompressImage(fileName) {
         
         // Verificar si es un archivo comprimido
         if (fileName.endsWith('.br') || compressedBlob.type === 'application/octet-stream') {
-            console.log('Descomprimiendo imagen...');
+
             
             // Descomprimir datos
             const decompressedData = await decompressBrotli(compressedBlob);
@@ -252,22 +252,7 @@ async function downloadAndDecompressImage(fileName) {
     }
 }
 
-// Función para obtener URL de imagen con descompresión automática
-async function getDecompressedImageURL(fileName) {
-    try {
-        const storageRef = storage.ref();
-        const imageRef = storageRef.child(fileName);
-        
-        // Obtener URL de descarga
-        const downloadURL = await imageRef.getDownloadURL();
-        
-        // La descompresión se maneja automáticamente al descargar
-        return downloadURL;
-    } catch (error) {
-        console.error('Error obteniendo URL de imagen:', error);
-        throw error;
-    }
-}
+
 
 // Función para obtener información de compresión
 function getCompressionInfo(originalSize, compressedSize) {
@@ -290,8 +275,6 @@ async function uploadImageToFirebase(file) {
         const fileExtension = originalFileName.split('.').pop().toLowerCase();
         
         // Comprimir imagen antes de subir
-        console.log('Comprimiendo imagen con Brotli...');
-        
         // Obtener calidad de compresión basada en el tamaño del archivo
         const compressionQuality = typeof getCompressionQuality === 'function' ? 
             getCompressionQuality(file.size) : 0.85;
@@ -302,8 +285,6 @@ async function uploadImageToFirebase(file) {
         const originalSize = file.size;
         const compressedSize = compressedFile.size;
         const compressionInfo = getCompressionInfo(originalSize, compressedSize);
-        
-        console.log('Información de compresión:', compressionInfo);
         
         // Crear nombre de archivo manteniendo formato original
         const fileName = `ilustraciones/${timestamp}_${originalFileName.replace(/\.[^/.]+$/, '')}.${fileExtension}`;

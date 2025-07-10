@@ -254,6 +254,24 @@ async function loadSiteConfigFromFirestore() {
 // Sobrescribir loadAllData para usar Firestore
 async function loadAllData() {
     await loadSiteConfigFromFirestore();
+    
+    if (isFirebaseConfigured()) {
+        // Cargar desde Firebase si está configurado
+        try {
+            await loadCarouselFromFirebase();
+            await loadGalleryFromFirebase();
+        } catch (error) {
+            console.error('Error cargando desde Firebase, usando datos locales:', error);
+            loadLocalData();
+        }
+    } else {
+        // Cargar datos locales si Firebase no está configurado
+        loadLocalData();
+    }
+}
+
+// Función auxiliar para cargar datos locales
+function loadLocalData() {
     // Cargar datos del carrusel
     const savedCarousel = localStorage.getItem('portfolioCarouselData');
     if (savedCarousel) {
@@ -378,12 +396,11 @@ function loadCarousel() {
 
     carouselTrack.innerHTML = '';
     
-    console.log('Cargando carrusel con', carouselData.length, 'imágenes');
-    console.log('Datos del carrusel:', carouselData);
+
 
     // Verificar si hay imágenes en el carrusel
     if (carouselData.length === 0) {
-        console.log('No hay imágenes en el carrusel, mostrando placeholder');
+    
         carouselTrack.innerHTML = `
             <div class="carousel-item active">
                 <img src="imagenes/sin-foto.png" alt="Sin imágenes">
@@ -398,7 +415,7 @@ function loadCarousel() {
 
     // Crear elementos del carrusel
     carouselData.forEach((item, index) => {
-        console.log(`Creando elemento ${index + 1}:`, item);
+
         const carouselItem = document.createElement('div');
         carouselItem.className = 'carousel-item' + (index === 0 ? ' active' : '');
         carouselItem.innerHTML = `
@@ -412,7 +429,6 @@ function loadCarousel() {
         
         // Verificar si la imagen se carga correctamente
         const img = carouselItem.querySelector('img');
-        img.onload = () => console.log(`Imagen ${index + 1} cargada correctamente:`, item.src);
         img.onerror = () => console.error(`Error cargando imagen ${index + 1}:`, item.src);
     });
 
@@ -523,6 +539,8 @@ function openImageModal(imageId) {
         modalDate.textContent = fecha ? fecha.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Sin fecha';
     }
     if (modal) {
+        // Guardar el ID de la imagen actual en el modal
+        modal.setAttribute('data-current-image-id', imageId);
         modal.classList.add('show');
         document.body.style.overflow = 'hidden';
     }
@@ -538,6 +556,33 @@ function closeImageModal() {
     document.body.style.overflow = 'auto';
     if (overlay) {
         overlay.classList.remove('show');
+    }
+}
+
+// Función auxiliar para actualizar el modal con datos frescos
+function updateImageModal(imageId) {
+    const image = findImageById(imageId);
+    if (!image) return;
+    
+    const modal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalDescription = document.getElementById('modalDescription');
+    const modalDate = document.getElementById('modalDate');
+    
+    if (modalImage) {
+        modalImage.src = image.src;
+        setImageFallback(modalImage);
+    }
+    if (modalTitle) {
+        modalTitle.textContent = image.title || '';
+    }
+    if (modalDescription) {
+        modalDescription.innerHTML = `<p>${image.description || ''}</p>`;
+    }
+    if (modalDate) {
+        let fecha = image.timestamp ? new Date(image.timestamp) : null;
+        modalDate.textContent = fecha ? fecha.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Sin fecha';
     }
 }
 
@@ -664,13 +709,17 @@ async function loadCarouselFromFirebase() {
 
 // Función para cargar galería desde Firebase
 async function loadGalleryFromFirebase() {
+    console.log('🔄 loadGalleryFromFirebase iniciado');
+    
     try {
         if (showFirebaseConfigError()) {
-            // Si Firebase no está configurado, usar datos locales
+            console.log('⚠️ Firebase no configurado, usando datos locales');
             return;
         }
 
+        console.log('📥 Obteniendo datos de Firestore...');
         const galleryItems = await getFromFirestore('gallery', 'timestamp', 'desc');
+        console.log('📊 Datos obtenidos de Firebase:', galleryItems);
         
         // Organizar por categorías
         const newGalleryData = {};
@@ -692,21 +741,28 @@ async function loadGalleryFromFirebase() {
             });
         });
 
+        console.log('📋 Datos organizados por categorías:', newGalleryData);
+
         // Actualizar datos globales
         Object.keys(newGalleryData).forEach(category => {
             galleryData[category] = newGalleryData[category];
         });
 
+        console.log('✅ galleryData actualizado:', galleryData);
+
+        // Recargar la galería para mostrar los cambios
+        console.log('🔄 Recargando galería con categoría actual:', currentCategory);
+        loadGallery(currentCategory);
+        console.log('✅ loadGalleryFromFirebase completado');
+
     } catch (error) {
-        console.error('Error cargando galería desde Firebase:', error);
+        console.error('❌ Error cargando galería desde Firebase:', error);
         // Fallback a datos locales
     }
 }
 
 // Función para verificar el estado del carrusel
 function checkCarouselStatus() {
-    console.log('Estado actual del carrusel:', carouselData);
-    
     if (carouselData.length === 0) {
         showNotification('El carrusel está vacío. Agrega imágenes desde el admin.', 'info');
         return;
@@ -715,17 +771,8 @@ function checkCarouselStatus() {
     // Verificar elementos del DOM
     const carouselTrack = document.getElementById('carouselTrack');
     const carouselItems = carouselTrack ? carouselTrack.querySelectorAll('.carousel-item') : [];
-    console.log('Elementos del carrusel en el DOM:', carouselItems.length);
     
     carouselData.forEach((item, index) => {
-        console.log(`Imagen ${index + 1}:`, {
-            title: item.title,
-            src: item.src,
-            isBase64: item.src && item.src.startsWith('data:image/'),
-            isRelative: item.src && item.src.startsWith('imagenes/'),
-            isFirebase: item.src && item.src.includes('firebase'),
-            isUrl: item.src && (item.src.startsWith('http://') || item.src.startsWith('https://'))
-        });
         
         if (item.src && item.src.startsWith('data:image/')) {
             showNotification(`Imagen ${index + 1} está en Base64. Usa "Resetear Carrusel" para solucionarlo.`, 'warning');
@@ -736,25 +783,10 @@ function checkCarouselStatus() {
         }
     });
     
-    // Verificar si Firebase está configurado
-    if (isFirebaseConfigured()) {
-        console.log('Firebase está configurado correctamente');
-    } else {
-        console.log('Firebase NO está configurado');
-    }
+
 }
 
-// Función para descargar imágenes automáticamente
-function downloadImage(file, fileName) {
-    const url = URL.createObjectURL(file);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
+
 
 // ==========================================================================
 // FUNCIONES DE ADMINISTRACIÓN
@@ -1083,21 +1115,33 @@ async function addGalleryImage() {
     }
 }
 
-function editGalleryItem(imageId) {
+async function editGalleryItem(imageId) {
+    console.log('🔍 editGalleryItem iniciado con ID:', imageId);
+    
     const image = findImageById(imageId);
-    if (!image) return;
+    if (!image) {
+        console.error('❌ No se encontró imagen con ID:', imageId);
+        return;
+    }
+    
+    console.log('📸 Imagen encontrada:', image);
+    
     const newTitle = prompt('Nuevo título:', image.title);
     if (newTitle === null) return;
+    
     const newDesc = prompt('Nueva descripción:', image.description);
     if (newDesc === null) return;
+    
     // Mostrar opciones de categoría
     const categoryOptions = Object.keys(categories).map(key => `${key}: ${categories[key].name}`).join('\n');
     const newCategory = prompt(`Nueva categoría (escribe la clave):\n${categoryOptions}`, image.category);
     if (newCategory === null) return;
+    
     if (!categories[newCategory]) {
         showNotification('Categoría inválida', 'error');
         return;
     }
+    
     // Editar fecha
     let currentDate = image.timestamp ? new Date(image.timestamp).toISOString().slice(0,10) : '';
     const newDate = prompt('Nueva fecha (YYYY-MM-DD):', currentDate);
@@ -1105,14 +1149,73 @@ function editGalleryItem(imageId) {
     if (newDate !== null && newDate !== '') {
         newTimestamp = new Date(newDate).getTime();
     }
-    image.title = newTitle;
-    image.description = newDesc;
-    image.category = newCategory;
-    image.timestamp = newTimestamp;
-    saveAllData();
-    loadGallery(currentCategory);
-    loadGalleryEditor();
-    showNotification('Imagen de galería actualizada', 'success');
+    
+    console.log('📝 Datos a actualizar:', {
+        title: newTitle,
+        description: newDesc,
+        category: newCategory,
+        timestamp: newTimestamp,
+        originalTimestamp: image.timestamp
+    });
+    
+    try {
+        console.log('🔧 Verificando Firebase...');
+        console.log('isFirebaseConfigured():', isFirebaseConfigured());
+        console.log('image.id:', image.id);
+        
+        if (isFirebaseConfigured() && image.id) {
+            console.log('✅ Firebase configurado y imagen tiene ID, actualizando en Firebase...');
+            
+            // Actualizar en Firebase
+            const updatedData = {
+                title: newTitle,
+                description: newDesc,
+                category: newCategory,
+                timestamp: newTimestamp,
+                imageUrl: image.imageUrl || image.src,
+                fileName: image.fileName
+            };
+            
+            console.log('📤 Datos a enviar a Firebase:', updatedData);
+            await updateInFirestore('gallery', image.id, updatedData);
+            console.log('✅ updateInFirestore completado');
+            
+            // Recargar desde Firebase
+            console.log('🔄 Recargando desde Firebase...');
+            await loadGalleryFromFirebase();
+            console.log('✅ loadGalleryFromFirebase completado');
+            console.log('📊 galleryData después de recarga:', galleryData);
+            
+            showNotification('Imagen de galería actualizada en Firebase', 'success');
+        } else {
+            console.log('⚠️ Firebase no configurado o imagen sin ID, usando datos locales');
+            
+            // Actualizar datos locales
+            image.title = newTitle;
+            image.description = newDesc;
+            image.category = newCategory;
+            image.timestamp = newTimestamp;
+            saveAllData();
+            loadGallery(currentCategory);
+            showNotification('Imagen de galería actualizada localmente', 'success');
+        }
+        
+        // Verificar si el modal está abierto para esta imagen y actualizarlo
+        const modal = document.getElementById('imageModal');
+        if (modal && modal.classList.contains('show')) {
+            const modalImageId = modal.getAttribute('data-current-image-id');
+            if (modalImageId == imageId) {
+                console.log('🔄 Actualizando modal abierto...');
+                updateImageModal(imageId);
+            }
+        }
+        
+        loadGalleryEditor();
+        console.log('✅ editGalleryItem completado exitosamente');
+    } catch (error) {
+        console.error('❌ Error actualizando imagen de galería:', error);
+        showNotification('Error al actualizar la imagen', 'error');
+    }
 }
 
 async function deleteGalleryItem(imageId) {
@@ -1674,11 +1777,7 @@ function editImage(imageId) {
     openImageModal(imageId);
 }
 
-function deleteImage() {
-    const modal = document.getElementById('imageModal');
-    const imageId = modal.getAttribute('data-current-image-id');
-    deleteImageFromGallery(imageId);
-}
+
 
 // ==========================================================================
 // REDES SOCIALES
@@ -1833,15 +1932,21 @@ function showNotification(message, type = 'info') {
 delete window.initializeExampleData;
 
 // Llamar a la inicialización cuando se carga la página
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     const yearSpan = document.getElementById('footerYear');
     if (yearSpan) {
         yearSpan.textContent = new Date().getFullYear();
     }
-    // Ya no se cargan datos de ejemplo locales
-    // Solo se cargan datos desde Firebase
-    loadCarouselFromFirebase();
-    loadGalleryFromFirebase();
+    
+    // Cargar todos los datos (Firebase o locales)
+    await loadAllData();
+    
+    // Configurar la interfaz después de cargar los datos
+    setupCategoryNavigation();
+    setupCarousel();
+    loadSocialLinks();
+    applySiteConfig();
+    
     // ... otras inicializaciones ...
     const prevBtn = document.getElementById('carouselPrevBtn');
     const nextBtn = document.getElementById('carouselNextBtn');
