@@ -1147,7 +1147,10 @@ async function editGalleryItem(imageId) {
     const newDate = prompt('Nueva fecha (YYYY-MM-DD):', currentDate);
     let newTimestamp = image.timestamp;
     if (newDate !== null && newDate !== '') {
-        newTimestamp = new Date(newDate).getTime();
+        // Corregir: crear fecha en zona horaria local
+        const dateParts = newDate.split('-');
+        const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+        newTimestamp = localDate.getTime();
     }
     
     console.log('📝 Datos a actualizar:', {
