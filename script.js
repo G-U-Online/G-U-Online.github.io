@@ -553,7 +553,7 @@ function closeImageModal() {
     const modal = document.getElementById('imageModal');
     const overlay = document.getElementById('imageModalOverlay');
     modal.classList.remove('show');
-    document.body.style.overflow = 'auto';
+    document.body.style.overflow = ''; // <-- Cambiado aquí
     if (overlay) {
         overlay.classList.remove('show');
     }
