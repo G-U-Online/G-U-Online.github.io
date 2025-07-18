@@ -200,9 +200,3 @@ Información de compresión: {
 - Si ves `allow write: if request.auth != null;`, **sí está seguro**.
 
 ---
-
-**Resumen:**  
-Tu frontend está preparado para distinguir entre admin y visitante, pero la seguridad real depende de las reglas en Firebase.  
-**Debes actualizar las reglas en Firebase Console** para que solo usuarios autenticados puedan modificar datos o subir archivos.
-
-¿Te gustaría que te guíe paso a paso para cambiar las reglas en Firebase? 
