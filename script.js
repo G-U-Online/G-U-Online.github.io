@@ -493,7 +493,7 @@ function createGalleryItem(image) {
     item.className = 'gallery-item';
     item.innerHTML = `
         <img src="${image.src}" alt="${image.title}" onerror="this.src='imagenes/sin-foto.png'">
-        <div role="button" tabindex="0" class="gallery-overlay" onclick="openImageModal('GESM8HghnS62f5E1K06d')">
+        <div role="button" tabindex="0" class="gallery-overlay" onclick="openImageModal('${image.id}')">
             <span class="view-btn">
                 Ver
             </span>
