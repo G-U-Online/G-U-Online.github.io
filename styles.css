@@ -292,7 +292,7 @@ section.container.my-5 {
     background: none;
     color: white;
     padding: 1.5rem;
-    z-index: 10; /* Mayor que el degradado (z-index: 5) */
+    z-index: 10; 
 }
 
 /* Estilos para cuando no hay imágenes */
@@ -535,7 +535,7 @@ section.container.my-5 {
 .modal-ig-content {
     display: inline-flex;
     flex-direction: row;
-    background: transparent; /* Sin fondo para evitar franjas */
+    background: transparent;
     border-radius: 18px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.45);
     max-width: 1200px;
@@ -550,12 +550,12 @@ section.container.my-5 {
 
 .modal-ig-image-container {
     position: relative;
-    flex: 1 1 auto; /* Permitir que se ajuste */
+    flex: 1 1 auto; 
     display: flex;
     align-items: center;
     justify-content: center;
-    background: transparent; /* Sin fondo */
-    border-radius: 18px 0 0 18px; /* Solo esquinas izquierdas redondeadas */
+    background: transparent; 
+    border-radius: 18px 0 0 18px; 
     overflow: hidden;
 }
 
@@ -566,7 +566,7 @@ section.container.my-5 {
     max-height: 92vh;
     object-fit: contain;
     display: block;
-    border-radius: 18px 0 0 18px; /* Solo esquinas izquierdas redondeadas */
+    border-radius: 18px 0 0 18px; 
 }
 
 .modal-ig-sidebar {
@@ -577,7 +577,7 @@ section.container.my-5 {
     padding: 2rem 1.5rem 1.5rem 1.5rem;
     overflow-y: auto;
     position: relative;
-    border-radius: 0 18px 18px 0; /* Solo esquinas derechas redondeadas */
+    border-radius: 0 18px 18px 0; 
 }
 .close-modal {
     position: absolute;
@@ -665,7 +665,7 @@ section.container.my-5 {
     gap: 1.2rem;
     margin-top: 2rem;
     margin-bottom: 1rem;
-    padding: 1.2rem 0 1.2rem 0; /* Reducido el padding superior e inferior */
+    padding: 1.2rem 0 1.2rem 0; 
 }
 
 /* Nuevo: separa los íconos del borde del contenedor */
@@ -700,7 +700,6 @@ section.container.my-5 {
     transform: scale(1.08);
 }
 
-/* Eliminar subrayado de íconos de redes sociales */
 .social-link i {
     text-decoration: none !important;
     border-bottom: none !important;
@@ -709,7 +708,6 @@ section.container.my-5 {
     text-decoration-color: transparent !important;
 }
 
-/* Eliminar cualquier línea o subrayado de los enlaces */
 .social-link {
     text-decoration: none !important;
     border-bottom: none !important;
@@ -782,13 +780,11 @@ section.container.my-5 {
     z-index: 2000;
 }
 
-/* FORZAR que el adminPanel principal esté oculto por defecto */
 #adminPanel {
     display: none !important;
     visibility: hidden !important;
 }
 
-/* Solo mostrar cuando tenga la clase 'show' */
 #adminPanel.show {
     display: block !important;
     visibility: visible !important;
@@ -1278,12 +1274,11 @@ section.container.my-5 {
     bottom: 0;
     left: 0;
     right: 0;
-    height: 35%; /* Un tercio aproximadamente */
     background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 50%, transparent 100%);
     opacity: 0;
     transition: opacity 0.3s ease;
     pointer-events: none;
-    z-index: 5; /* Debajo del texto */
+    z-index: 5; 
 }
 
 .carousel-item:hover::after {
@@ -1294,7 +1289,6 @@ section.container.my-5 {
     transform: scale(1.05);
 } 
 
-/* Mejorar legibilidad del texto del carrusel */
 .carousel-overlay h5 {
     text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
     font-weight: 600;
