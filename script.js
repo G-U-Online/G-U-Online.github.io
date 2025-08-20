@@ -493,10 +493,11 @@ function createGalleryItem(image) {
     item.className = 'gallery-item';
     item.innerHTML = `
         <img src="${image.src}" alt="${image.title}" onerror="this.src='imagenes/sin-foto.png'">
-        <div class="gallery-overlay">
-            <button class="view-btn" onclick="openImageModal('${image.id}')">
+        <div role="button" tabindex="0" class="gallery-overlay" onclick="openImageModal('GESM8HghnS62f5E1K06d')">
+            <span class="view-btn">
                 Ver
-            </button>
+            </span>
+        </div>
         </div>
         <div class="admin-controls admin-only ${isAdmin ? '' : 'hidden'}">
             <button class="admin-btn" onclick="editImage('${image.id}')" title="Editar">
